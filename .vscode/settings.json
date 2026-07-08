@@ -12,6 +12,7 @@
     },
     "git.ignoredRepositories": [
         "c:\\Users\\RayagiriVidhathri\\OneDrive - Agivant Technlogies India Pvt. Ltd\\Desktop"
-    ]
+    ],
+    "git.autoRepositoryDetection": "workspace"
 }
 
