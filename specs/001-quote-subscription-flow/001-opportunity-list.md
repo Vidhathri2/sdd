@@ -6,11 +6,17 @@
 
 ## 1. User Interface & Layout
 
-The Opportunity List is the entry page of the **Deal Studio** workspace. It provides a tabular overview of sales opportunities in the organization.
+The Opportunity List is the entry page of the **Deal Studio** workspace, presenting a clean Salesforce-style light theme interface with a light grey background (`#f0f2f5`).
 
 ### UI Structure (Landing Page)
-- **Header**: Contains the "Deal Studio" title on the left, a "Search" input field in the middle, and status/profile icons on the right.
-- **Main Content**: A structured table titled "Opportunities" displaying active opportunity records.
+- **Top Navigation Bar / Header**: 
+  - Rendered as a horizontal bar with a light grey background (`#f3f4f6`), rounded corners, and a thin border.
+  - **Left side**: Hamburger menu icon (`≡`) followed by the "Deal Studio" title.
+  - **Middle**: Centralized pill-shaped search input field (placeholder "Search") with a search icon on the right.
+  - **Right side**: Icons for Notifications (bell), AI (sparkle), Help (question mark), Settings (gear), and User Profile.
+- **Opportunities Card**: 
+  - A white background container (`bg-white`) with rounded corners, a soft shadow, and a subtle border.
+  - Titled **"Opportunities"** at the top-left.
 - **Table Columns**:
   - `Checkbox` (for selecting rows)
   - `Opportunity Name` (with ascending sort arrow indicator `↑`)
@@ -19,10 +25,14 @@ The Opportunity List is the entry page of the **Deal Studio** workspace. It prov
   - `Amount`
   - `Close Date`
   - `Action Menu` (represented by a vertical three-dot icon `⋮` at the end of each row)
+- **Actions Popover**:
+  - A light blue-ish grey menu popup (`bg-[#eef2f6]`) with rounded corners and a soft shadow, triggered below the vertical three-dot icon.
+  - Contains a single button **"Create Quote"** displaying a circular plus `+` icon.
 - **Footer (Pagination)**:
-  - `Rows per page` selector (dropdown, defaults to `10`)
-  - Range and Total indicator (e.g., `1-10 of 33`)
-  - Pagination navigation buttons: First Page (`|<`), Previous Page (`<`), Next Page (`>`), Last Page (`>|`).
+  - Right-aligned at the bottom of the card.
+  - `Rows per page` selector dropdown.
+  - Range and Total indicator (e.g., `1-10 of 33`).
+  - Simple navigation control buttons: First Page (`|<`), Previous Page (`<`), Next Page (`>`), Last Page (`>|`).
 
 ### Visual Mocks Reference
 - **Screen 1**: Displays the Deal Studio page with opportunities data, illustrating pagination and the hover interaction on a table row showing the "Create Quote" action.
@@ -32,7 +42,7 @@ The Opportunity List is the entry page of the **Deal Studio** workspace. It prov
 ## 2. Interaction & Behavior
 
 ### Paginated Loading
-- When the page loads, the system fetches all opportunity records.
+- When the page loads, the system fetches all opportunity records usin **Fetch Opportunities list (GET)**(it is present in api_specification.md file clearly).
 - To maintain optimal performance, the table must limit display to **10 records per page** by default.
 - If the user changes `Rows per page` (e.g., to 20, 50, 100), the table re-renders the selected amount of rows.
 - Navigation buttons are enabled/disabled dynamically based on the current page index.

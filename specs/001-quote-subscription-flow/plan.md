@@ -1,33 +1,34 @@
-# Implementation Plan: Quote Creation & Subscription Period Configuration Flow
+# Implementation Plan: Quote Creation & Subscription Period Configuration Flow (Angular & Tailwind CSS)
 
-**Branch**: `001-quote-subscription-flow` | **Date**: 2026-07-07 | **Spec**: [spec.md](./spec.md)
+**Branch**: `001-quote-subscription-flow` | **Date**: 2026-07-08 | **Spec**: [spec.md](./spec.md)
 
 **Input**: Feature specification from `/specs/001-quote-subscription-flow/spec.md`
 
 ## Summary
 
-This feature delivers an integrated sales wizard ("Deal Studio") that enables sales reps to create quotes from active opportunities, select product bundles (GCP and Looker Core), configure subscription details, and partition the contract term into annual or custom periods. We will implement this as a high-fidelity, responsive Single Page Application (SPA) using vanilla HTML, CSS, and modern JavaScript, structured and bundled using Vite.
+This feature delivers an integrated sales wizard ("Deal Studio") that enables sales reps to create quotes from active opportunities, select product bundles (GCP and Looker Core), configure subscription details, and partition the contract term into annual or custom periods. We will implement this as a high-fidelity, responsive single-page web application using **Angular (v18.x)** with **TypeScript**, styled using the **Tailwind CSS** framework.
 
 ## Technical Context
 
-**Language/Version**: HTML5, CSS3, JavaScript (ES6+)
+**Language/Version**: TypeScript (v5.5+), HTML5, CSS3
 
 **Primary Dependencies**: 
-- `vite` (v5.x) - Dev server and build tool
-- `lucide` (icons) - For high-quality UI icons
-- `vitest` (v1.x) - For unit testing validation rules and period splitting logic
+- `@angular/core`, `@angular/common`, `@angular/router`, `@angular/forms` (v18.x) - Application framework
+- `tailwindcss` (v3.x), `postcss`, `autoprefixer` - Utility-first styling framework
+- `rxjs` (v7.8+) - Reactive streams for state management and API calls
+- `jasmine` and `karma` - Angular-native unit testing framework
 
 **Storage**:
 - Browser `sessionStorage` - For opportunity context caching
 - Browser `localStorage` - For persistent mock Quote database
 
 **Testing**: 
-- `vitest` for business logic (date splitting calculations, validations)
+- Jasmine/Karma for unit tests of Angular components, services, and utility functions
 - Manual high-fidelity UX validation
 
 **Target Platform**: Modern Desktop Web Browsers (Chrome, Edge, Safari, Firefox)
 
-**Project Type**: Vanilla Frontend Single Page Application
+**Project Type**: Angular 18 Web Application (Single-Page)
 
 **Performance Goals**: 
 - Initial paint under 1.0 second
@@ -39,11 +40,12 @@ This feature delivers an integrated sales wizard ("Deal Studio") that enables sa
 - Fully functional CRM Deal Studio wizard with three screen states in a single page flow
 - Defaults to CAD currency
 - Strict date validations (no gaps, overlaps, or invalid ranges)
+- Use of Tailwind CSS utility classes for layout, styling, and interactions (hover, active, disabled)
 
 **Scale/Scope**:
-- 1 Landing Opportunity view
-- 1 Catalog product selection view with Cart slide-out
-- 1 Double-tab Quote configuration view with period ramp grids
+- 1 Landing Opportunity view component
+- 1 Catalog product selection view component with Cart slide-out drawer
+- 1 Double-tab Quote configuration view component with period ramp grids
 
 ## Constitution Check
 
@@ -51,39 +53,49 @@ This feature delivers an integrated sales wizard ("Deal Studio") that enables sa
 
 | Principle / Rule | Status | Notes |
 |:---|:---|:---|
-| I. Library-First | Pass | Date calculations and validation logic will be housed in isolated, pure-JS utility modules. |
+| I. Library-First | Pass | Date calculations and validation logic will be housed in isolated, pure-TypeScript utility modules. |
 | II. CLI / Protocol | Pass | Not applicable to this frontend web application; internal state protocols are clean JSON structures. |
-| III. Test-First | Pass | Test cases for period date calculations and validation logic will be defined in `vitest`. |
-| IV. Simplicity | Pass | Pure vanilla JS and CSS to avoid framework bloat and keep page transitions instant. |
+| III. Test-First | Pass | Test cases for components, services, and period calculations will be defined using Jasmine/Karma. |
+| IV. Simplicity | Pass | Single-responsibility Angular components and standard Tailwind styling utilities. |
 
 ## Project Structure
 
-We are utilizing a Single Project Vite-based structure at the workspace root to ensure simple build, hot-reload, and high-fidelity rendering.
+We are utilizing a standard Angular workspace layout configured with Tailwind CSS:
 
 ```text
 /
-├── index.html                  # Main application entry point
-├── package.json                # Project configuration & scripts
-├── vite.config.js              # Vite bundler config
+├── angular.json                # Angular workspace configuration
+├── package.json                # Project dependencies, scripts, and configuration
+├── tailwind.config.js          # Tailwind CSS style definitions and content paths
+├── tsconfig.json               # TypeScript base configuration
 ├── src/
-│   ├── main.js                 # App router, global event routing, and state manager
-│   ├── style.css               # Premium design system, tokens, and global layout classes
-│   ├── components/
-│   │   ├── opportunity-list.js # Deal Studio opportunity table & pagination component
-│   │   ├── product-catalog.js  # Discovery sidebar filters, product list, and cart drawer
-│   │   └── quote-wizard.js     # Details tab, Plans & Discounts tab, and period generator
-│   ├── services/
-│   │   ├── db-service.js       # LocalStorage CRM database wrapper
-│   │   └── period-service.js   # Pure logic for yearly/custom period date calculations
-│   └── utils/
-│       ├── date-utils.js       # Date formatting, comparison, and addition helpers
-│       └── dom-utils.js        # DOM creation and selector utilities
-└── tests/
-    ├── period-service.test.js  # Unit tests for yearly date dividing logic
-    └── date-utils.test.js      # Unit tests for date comparison & overlap rules
+│   ├── index.html              # Main HTML container
+│   ├── main.ts                 # Bootstrap file for the Angular application
+│   ├── styles.css              # Global styles importing Tailwind directives
+│   ├── app/
+│   │   ├── app.config.ts       # Global providers (routing, animations, HTTP)
+│   │   ├── app.routes.ts       # Application routing configuration
+│   │   ├── app.component.ts    # Main application root component
+│   │   ├── components/
+│   │   │   ├── opportunity-list/   # Angular component for opportunity landing page
+│   │   │   ├── product-catalog/    # Angular component for product discovery and cart drawer
+│   │   │   └── quote-wizard/       # Angular component for quote configuration and period generation
+│   │   ├── services/
+│   │   │   ├── crm.service.ts      # Shared service for Opportunity / Product / Quote mock APIs
+│   │   │   └── period.service.ts   # Shared service for Yearly/Custom period date calculations
+│   │   └── utils/
+│   │       └── date-utils.ts       # Pure TS functions for date validation, gaps, and overlaps
+└── specs/
+    └── 001-quote-subscription-flow/
+        ├── spec.md             # Functional requirements document
+        ├── plan.md             # This implementation plan
+        ├── research.md         # Research on split periods and date mathematics
+        ├── data-model.md       # Data definitions and mock CRM schemas
+        └── contracts/
+            └── api.md          # Mock HTTP request/response payloads
 ```
 
-**Structure Decision**: A single Vite-based project in the workspace root allows us to compile Vanilla CSS and JS files, run a dev server with hot module replacement, and output a highly optimized production bundle.
+**Structure Decision**: A standard Angular structure keeps our components isolated, type-safe, and highly maintainable, while Tailwind CSS handles styling without writing custom CSS classes.
 
 ## Complexity Tracking
 
