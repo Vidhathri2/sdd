@@ -179,6 +179,28 @@ Executed during application startup to obtain dynamic active credentials from th
     ```
 *   **Sample Response:** Standard array format listing filtered products.
 
+### 6.5 Fetch Product PricebookEntryId via SOQL (GET)
+*   **Endpoint:** `/services/data/v65.0/query/?q=SELECT+Id+FROM+PricebookEntry+WHERE+Product2Id='[ProductId]'+AND+IsActive=true+LIMIT+1`
+*   **Service Method:** `CrmService.createQuote` (Internal step via forkJoin)
+*   **Description:** Fetches the active `PricebookEntryId` for a given `Product2Id` before constructing the quote payload, because the `/products` API may omit it.
+*   **Payload:** None
+*   **Sample Response:**
+    ```json
+    {
+      "totalSize": 1,
+      "done": true,
+      "records": [
+        {
+          "attributes": {
+            "type": "PricebookEntry",
+            "url": "/services/data/v65.0/sobjects/PricebookEntry/01uDz00000dqWOPIA2"
+          },
+          "Id": "01uDz00000dqWOPIA2"
+        }
+      ]
+    }
+    ```
+
 ### 7. Place Graph Quote Transaction (POST)
 *   **Endpoint:** `/services/data/v65.0/connect/rev/sales-transaction/actions/place`
 *   **Service Method:** `SalesforceApiService.createQuoteWithLines`
@@ -238,7 +260,7 @@ Executed during application startup to obtain dynamic active credentials from th
     ```json
     {
       "salesTransactionId": "00QDz00000QuoteId1",
-      "success": true,
+      "isSuccess": true,
       "errors": []
     }
     ```

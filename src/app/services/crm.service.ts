@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Observable, of } from 'rxjs';
-import { map, catchError } from 'rxjs/operators';
+import { Observable, of, forkJoin } from 'rxjs';
+import { map, catchError, switchMap } from 'rxjs/operators';
 
 export interface Opportunity {
   id: string;
@@ -24,7 +24,7 @@ export interface Product {
 
 export interface QuoteResponse {
   salesTransactionId: string;
-  success: boolean;
+  isSuccess: boolean;
   errors?: any[];
 }
 
@@ -224,74 +224,94 @@ export class CrmService {
   createQuote(opportunityId: string, products: Product[]): Observable<QuoteResponse> {
     const url = `${this.baseUrl}/services/data/v65.0/connect/rev/sales-transaction/actions/place`;
 
-    // Construct the composite graph payload
-    const records: any[] = [
-      {
-        referenceId: 'refQuote',
-        record: {
-          attributes: {
-            method: 'POST',
-            type: 'Quote'
-          },
-          Name: `Quote-${new Date().toISOString()}`,
-          OpportunityId: opportunityId,
-          Pricebook2Id: '01sf4000003ZgtzAAC',
-          StartDate: new Date().toISOString().split('T')[0],
-          ExpirationDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
-        }
-      }
-    ];
-
-    products.forEach((prod, index) => {
-      const qli: any = {
-        attributes: {
-          type: 'QuoteLineItem',
-          method: 'POST'
-        },
-        QuoteId: '@{refQuote.id}',
-        Product2Id: prod.id,
-        Quantity: 1,
-        StartDate: new Date().toISOString().split('T')[0],
-        EndDate: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-        PeriodBoundary: 'Anniversary'
-      };
-
-      if (prod.pricebookEntryId) {
-        qli.PricebookEntryId = prod.pricebookEntryId;
-      }
-
-      records.push({
-        referenceId: `refQuoteLine${index}`,
-        record: qli
-      });
+    // Fetch PricebookEntryId for all products first
+    const pbeRequests = products.map(prod => {
+      const query = `SELECT Id FROM PricebookEntry WHERE Product2Id='${prod.id}' AND IsActive=true LIMIT 1`;
+      const queryUrl = `${this.baseUrl}/services/data/v65.0/query/?q=${encodeURIComponent(query)}`;
+      return this.http.get<any>(queryUrl, { headers: this.getHeaders() }).pipe(
+        map(res => {
+          if (res && res.records && res.records.length > 0) {
+            return { ...prod, fetchedPricebookEntryId: res.records[0].Id };
+          }
+          return prod;
+        }),
+        catchError(() => of(prod))
+      );
     });
 
-    const payload = {
-      pricingPref: 'Skip',
-      catalogRatesPref: 'Skip',
-      configurationPref: {
-        configurationMethod: 'Skip',
-        configurationOptions: {
-          executeConfigurationRules: false,
-          addDefaultConfiguration: false
-        }
-      },
-      taxPref: 'Skip',
-      contextDetails: {},
-      graph: {
-        graphId: 'createQuoteWithBundle',
-        records: records
-      }
-    };
+    return forkJoin(pbeRequests).pipe(
+      switchMap(updatedProducts => {
+        // Construct the composite graph payload
+        const records: any[] = [
+          {
+            referenceId: 'refQuote',
+            record: {
+              attributes: {
+                method: 'POST',
+                type: 'Quote'
+              },
+              Name: `Quote-${new Date().toISOString()}`,
+              OpportunityId: opportunityId,
+              Pricebook2Id: '01sf4000003ZgtzAAC',
+              StartDate: new Date().toISOString().split('T')[0],
+              ExpirationDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+            }
+          }
+        ];
 
-    return this.http.post<QuoteResponse>(url, payload, { headers: this.getHeaders() }).pipe(
-      catchError(error => {
-        console.warn('Salesforce Graph Quote API failed. Falling back to local success mockup.', error);
-        return of({
-          salesTransactionId: `mock-quote-${Math.random().toString(36).substr(2, 9)}`,
-          success: true,
-          errors: []
+        updatedProducts.forEach((prod: any, index: number) => {
+          const qli: any = {
+            attributes: {
+              type: 'QuoteLineItem',
+              method: 'POST'
+            },
+            QuoteId: '@{refQuote.id}',
+            Product2Id: prod.id,
+            Quantity: 1,
+            StartDate: new Date().toISOString().split('T')[0],
+            EndDate: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+            PeriodBoundary: 'Anniversary'
+          };
+
+          const pbeId = prod.fetchedPricebookEntryId || prod.pricebookEntryId;
+          if (pbeId) {
+            qli.PricebookEntryId = pbeId;
+          }
+
+          records.push({
+            referenceId: `refQuoteLine${index}`,
+            record: qli
+          });
         });
+
+        const payload = {
+          pricingPref: 'Skip',
+          catalogRatesPref: 'Skip',
+          configurationPref: {
+            configurationMethod: 'Skip',
+            configurationOptions: {
+              executeConfigurationRules: false,
+              addDefaultConfiguration: false
+            }
+          },
+          taxPref: 'Skip',
+          contextDetails: {},
+          graph: {
+            graphId: 'createQuoteWithBundle',
+            records: records
+          }
+        };
+
+        return this.http.post<QuoteResponse>(url, payload, { headers: this.getHeaders() }).pipe(
+          catchError(error => {
+            console.warn('Salesforce Graph Quote API failed. Falling back to local success mockup.', error);
+            return of({
+              salesTransactionId: `mock-quote-${Math.random().toString(36).substr(2, 9)}`,
+              isSuccess: true,
+              errors: []
+            });
+          })
+        );
       })
     );
   }

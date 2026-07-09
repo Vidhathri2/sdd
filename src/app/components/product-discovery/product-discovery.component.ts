@@ -137,7 +137,7 @@ export class ProductDiscoveryComponent implements OnInit {
 
     this.crmService.createQuote(oppId, this.cart).subscribe({
       next: (quoteRes) => {
-        if (quoteRes.success && quoteRes.salesTransactionId) {
+        if (quoteRes.isSuccess && quoteRes.salesTransactionId) {
           // Immediately redirect after successful quote creation without chaining getQuoteDetails
           sessionStorage.setItem('createdQuoteId', quoteRes.salesTransactionId);
           sessionStorage.setItem('createdQuoteNumber', 'Q-Pending');

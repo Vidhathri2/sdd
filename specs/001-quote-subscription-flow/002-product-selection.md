@@ -47,9 +47,10 @@ The Product Selection page allows sales representatives to discover product bund
 - Clicking the close `X` button on the cart panel hides the drawer, but retains added items.
 - Clicking `Continue` in the cart:
   - Validates that the cart is not empty.
+  - Queries Salesforce via SOQL to dynamically fetch the active `PricebookEntryId` for the selected products.
   - Calls **API 7. Place Graph Quote Transaction (POST)** to atomically create a Quote and its Line Items in Salesforce.
-  - Passes the previously selected **Opportunity ID** (from the first screen) and the **Product ID** of the item added to the cart as part of the JSON graph payload.
-  - Upon success, navigates the user to the **Quote Details & Subscription Flow** page.
+  - Passes the previously selected **Opportunity ID** (from the first screen), the **Product ID**, and the fetched **PricebookEntryId** as part of the JSON graph payload.
+  - Upon success (`isSuccess: true`), navigates the user to the **Quote Details & Subscription Flow** page.
 
 ### MVP Scope Constraints
 - Under this MVP, the system strictly supports configuration for the following core product bundles:
@@ -85,12 +86,12 @@ The Product Selection page calls the following Salesforce APIs (defined in `API_
    - **Method**: `CrmService.getProducts`
    - **Description**: Loads the list of active product bundles. In local/mock environments, falls back to a preset list of MVP bundles matching the family filters (`GCP`, `Workspace`, `Chrome`, `Maps`, `PSO`).
 
-2. **Place Graph Quote Transaction**:
+2. **Fetch Product PricebookEntryId (Internal)**:
+   - **Endpoint**: `GET /services/data/v65.0/query/?q=SELECT+Id...`
+   - **Method**: `CrmService.createQuote` (Internal step)
+   - **Description**: Fetches the active `PricebookEntryId` for the selected product via SOQL before creating the quote.
+
+3. **Place Graph Quote Transaction**:
    - **Endpoint**: `POST /services/data/v65.0/connect/rev/sales-transaction/actions/place`
    - **Method**: `CrmService.createQuote`
-   - **Description**: Creates a new Quote record pre-associated with the selected Opportunity, creating `QuoteLineItem` records for all selected product bundles.
-
-3. **Fetch Quote Details**:
-   - **Endpoint**: `GET /services/data/v65.0/sobjects/Quote/{quoteId}`
-   - **Method**: `CrmService.getQuoteDetails`
-   - **Description**: Fetches the generated quote details (specifically `QuoteNumber`) prior to navigation.
+   - **Description**: Creates a new Quote record pre-associated with the selected Opportunity and assigns the fetched `PricebookEntryId` for the selected product bundles.
