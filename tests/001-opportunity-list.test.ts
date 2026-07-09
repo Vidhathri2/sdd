@@ -152,7 +152,7 @@ describe('OpportunityListComponent (Angular & Tailwind)', () => {
       expect(createQuoteAction?.textContent?.trim()).toContain('Create Quote');
     });
 
-    it('should cache opportunity details in sessionStorage and navigate to /select-products on Create Quote click', () => {
+    it('should cache opportunity details in sessionStorage and navigate to /product-selection on Create Quote click', () => {
       mockCrmService.getOpportunities.and.returnValue(of(dummyOpportunities.slice(0, 1)));
       fixture.detectChanges();
 
@@ -169,7 +169,7 @@ describe('OpportunityListComponent (Angular & Tailwind)', () => {
       expect(sessionStorage.setItem).toHaveBeenCalledWith('selectedAccountName', 'Account Name 1');
       expect(sessionStorage.setItem).toHaveBeenCalledWith('selectedOpportunityName', 'Opportunity Name 1');
       expect(sessionStorage.setItem).toHaveBeenCalledWith('selectedPrimaryContact', 'Sarah Connor 1');
-      expect(mockRouter.navigate).toHaveBeenCalledWith(['/select-products']);
+      expect(mockRouter.navigate).toHaveBeenCalledWith(['/product-selection']);
     });
   });
 

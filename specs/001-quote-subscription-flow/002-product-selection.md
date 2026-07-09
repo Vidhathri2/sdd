@@ -78,3 +78,24 @@ The Product Selection page allows sales representatives to discover product bund
 
 - **Empty Search Results**: If a search query does not match any products, display a placeholder text: *"No products match your search. Try a different keyword."*
 - **Cart Session Expiry**: If the user leaves the page idle for too long and session caches clear, clicking "Continue" must prompt: *"Your session has expired. Please select the opportunity again."*
+
+---
+
+## 5. API Integration Mapping
+
+The Product Selection page calls the following Salesforce APIs (defined in `API_SPECIFICATION.md`):
+
+1. **Pre-fetch Product Bundles Catalogue**:
+   - **Endpoint**: `POST /services/data/v65.0/connect/pcm/products`
+   - **Method**: `CrmService.getProducts`
+   - **Description**: Loads the list of active product bundles. In local/mock environments, falls back to a preset list of MVP bundles matching the family filters (`GCP`, `Workspace`, `Chrome`, `Maps`, `PSO`).
+
+2. **Place Graph Quote Transaction**:
+   - **Endpoint**: `POST /services/data/v65.0/connect/rev/sales-transaction/actions/place`
+   - **Method**: `CrmService.createQuote`
+   - **Description**: Creates a new Quote record pre-associated with the selected Opportunity, creating `QuoteLineItem` records for all selected product bundles.
+
+3. **Fetch Quote Details**:
+   - **Endpoint**: `GET /services/data/v65.0/sobjects/Quote/{quoteId}`
+   - **Method**: `CrmService.getQuoteDetails`
+   - **Description**: Fetches the generated quote details (specifically `QuoteNumber`) prior to navigation.

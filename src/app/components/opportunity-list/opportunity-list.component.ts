@@ -219,6 +219,6 @@ export class OpportunityListComponent implements OnInit, OnDestroy {
     sessionStorage.setItem('selectedPrimaryContact', opp.primaryContact);
 
     // Redirect to select-products screen
-    this.router.navigate(['/select-products']);
+    this.router.navigate(['/product-selection']);
   }
 }
