@@ -7,6 +7,5 @@ export const routes: Routes = [
   { path: '', redirectTo: 'opportunities', pathMatch: 'full' },
   { path: 'opportunities', component: OpportunityListComponent },
   { path: 'product-selection', component: ProductDiscoveryComponent },
-  { path: 'quote-details', component: OpportunityListComponent }, // Temporary placeholder
-  { path: 'configure-quote', component: QuoteWizardComponent }
+  { path: 'quote-details', component: QuoteWizardComponent }
 ];

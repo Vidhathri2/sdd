@@ -19,6 +19,7 @@ export interface Product {
   family: string;
   icon: string;
   description?: string;
+  pricebookEntryId?: string;
 }
 
 export interface QuoteResponse {
@@ -139,13 +140,26 @@ export class CrmService {
 
     return this.http.post<{ products: any[] }>(url, payload, { headers: this.getHeaders() }).pipe(
       map(response => (response.products || []).map(p => {
-        const familyVal = p.family || p.fields?.Product2?.Family || p.fields?.Family || 'Other';
+        const familyVal = p.family || p.additionalFields?.Family || p.categories?.[0]?.name || p.fields?.Product2?.Family || p.fields?.Family || 'Other';
+        let pbeId = p.pricebookEntryId || p.PricebookEntryId || p.defaultPricebookEntryId || '';
+        if (!pbeId && p.prices) {
+          if (Array.isArray(p.prices) && p.prices.length > 0) {
+            pbeId = p.prices[0].pricebookEntryId || p.prices[0].PricebookEntryId || '';
+          } else {
+            pbeId = p.prices.pricebookEntryId || p.prices.PricebookEntryId || '';
+          }
+        }
+        if (!pbeId && p.additionalFields) {
+           pbeId = p.additionalFields.PricebookEntryId || p.additionalFields.pricebookEntryId || '';
+        }
+        
         return {
-          id: p.id || p.productId || '',
-          name: p.name || '',
+          id: p.id || p.productId || p.Product2Id || '',
+          name: p.name || p.additionalFields?.Name || '',
           family: familyVal,
           icon: familyVal,
-          description: p.description || ''
+          description: p.description || '',
+          pricebookEntryId: pbeId
         };
       })),
       catchError(error => {
@@ -179,10 +193,10 @@ export class CrmService {
 
     return this.http.post<{ products: any[] }>(url, payload, { headers: this.getHeaders() }).pipe(
       map(response => (response.products || []).map(p => {
-        const familyVal = p.family || p.fields?.Product2?.Family || p.fields?.Family || 'Other';
+        const familyVal = p.family || p.additionalFields?.Family || p.categories?.[0]?.name || p.fields?.Product2?.Family || p.fields?.Family || 'Other';
         return {
           id: p.id || p.productId || '',
-          name: p.name || '',
+          name: p.name || p.additionalFields?.Name || '',
           family: familyVal,
           icon: familyVal,
           description: p.description || ''
@@ -207,7 +221,7 @@ export class CrmService {
     );
   }
 
-  createQuote(opportunityId: string, productIds: string[]): Observable<QuoteResponse> {
+  createQuote(opportunityId: string, products: Product[]): Observable<QuoteResponse> {
     const url = `${this.baseUrl}/services/data/v65.0/connect/rev/sales-transaction/actions/place`;
 
     // Construct the composite graph payload
@@ -228,20 +242,27 @@ export class CrmService {
       }
     ];
 
-    productIds.forEach((prodId, index) => {
+    products.forEach((prod, index) => {
+      const qli: any = {
+        attributes: {
+          type: 'QuoteLineItem',
+          method: 'POST'
+        },
+        QuoteId: '@{refQuote.id}',
+        Product2Id: prod.id,
+        Quantity: 1,
+        StartDate: new Date().toISOString().split('T')[0],
+        EndDate: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        PeriodBoundary: 'Anniversary'
+      };
+
+      if (prod.pricebookEntryId) {
+        qli.PricebookEntryId = prod.pricebookEntryId;
+      }
+
       records.push({
         referenceId: `refQuoteLine${index}`,
-        record: {
-          attributes: {
-            type: 'QuoteLineItem',
-            method: 'POST'
-          },
-          QuoteId: '@{refQuote.id}',
-          Product2Id: prodId,
-          Quantity: 1,
-          StartDate: new Date().toISOString().split('T')[0],
-          PeriodBoundary: 'Anniversary'
-        }
+        record: qli
       });
     });
 

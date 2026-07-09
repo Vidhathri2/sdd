@@ -12,15 +12,10 @@ The Product Selection page allows sales representatives to discover product bund
 - **Header**: Displays `← Select products` (with a back arrow button to return to the opportunity landing page).
 - **Search bar**: A full-width search input field with placeholder `Search by keyword` and a magnifying glass search icon.
 - **Two-Column Layout**:
-  - **Left Sidebar**: "Product family" filter panel showing list items:
-    - `GCP`
-    - `Workspace`
-    - `Chrome`
-    - `Maps`
-    - `PSO`
-  - **Right Main Panel**: Grouped list of available product bundles showing a title header and individual product cards.
+  - **Left Sidebar**: "Product family" filter panel showing list items. The list of families should NOT be hardcoded, but instead generated dynamically by extracting all unique families from the full API response.
+  - **Right Main Panel**: Grouped list of available product bundles. (Note: Per MVP requirement, hardcode the frontend to only display two specific products: `Google Cloud Platform RCA` and `Looker New RCA`).
 - **Product Card Content**:
-  - Group Header (e.g., `Chrome OS`, `Google Cloud Platform`, `Looker Core`)
+  - Group Header (e.g., `Google Cloud Platform RCA`, `Looker New RCA`)
   - Product Icon & Label (e.g., Chrome, GCP, Maps, Workspace)
   - Action Button (`+ Add` on the right side)
 - **Cart View (Right Slide-out Drawer)**:
@@ -46,15 +41,15 @@ The Product Selection page allows sales representatives to discover product bund
 
 ### Cart Lifecycle
 - Clicking `+ Add` on a product card:
-  - Changes the button text and style on the card to `✓ Added` (in a light blue, disabled state).
-  - Slides out the `Added products` pane from the right side.
-  - Appends the product name and icon to the cart list.
+  - Adds the product to the cart and slides out the `Added products` pane from the right side.
+  - The button acts as a toggle, changing to a clickable `✓ Added` state (light blue styling). Clicking it again will instantly remove the product from the cart and revert the button back to `+ Add`.
+  - Adding *any* product to the cart (making the cart length 1 or more) will immediately disable and gray out the `+ Add` buttons on all other unselected products to prevent multiple selections.
 - Clicking the close `X` button on the cart panel hides the drawer, but retains added items.
 - Clicking `Continue` in the cart:
   - Validates that the cart is not empty.
-  - Creates a Quote record in the database pre-associated with the selected Opportunity.
-  - Copies the selected bundle products into the Quote Line Items.
-  - Navigates the user to the **Quote Details & Subscription Flow** page.
+  - Calls **API 7. Place Graph Quote Transaction (POST)** to atomically create a Quote and its Line Items in Salesforce.
+  - Passes the previously selected **Opportunity ID** (from the first screen) and the **Product ID** of the item added to the cart as part of the JSON graph payload.
+  - Upon success, navigates the user to the **Quote Details & Subscription Flow** page.
 
 ### MVP Scope Constraints
 - Under this MVP, the system strictly supports configuration for the following core product bundles:

@@ -180,14 +180,16 @@
                 </div>
               </div>
 
-              <!-- Add to Cart Action -->
+              <!-- Add/Remove Toggle Action -->
               <button 
                 type="button" 
-                (click)="addToCart(prod)"
-                [disabled]="isInCart(prod.id)"
+                (click)="toggleCart(prod)"
+                [disabled]="!isInCart(prod.id) && cart.length >= 1"
                 class="add-btn px-5 py-2 rounded-full text-xs font-semibold shadow-sm transition-all duration-150 flex items-center gap-1.5 shrink-0"
                 [ngClass]="isInCart(prod.id) 
-                  ? 'bg-[#e0f2fe] text-[#0369a1] font-bold cursor-not-allowed border border-transparent' 
+                  ? 'bg-[#e0f2fe] text-[#0369a1] font-bold border border-transparent hover:bg-blue-100 hover:text-blue-800' 
+                  : (!isInCart(prod.id) && cart.length >= 1)
+                  ? 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed'
                   : 'bg-white hover:bg-gray-50 text-gray-700 border border-gray-300'"
               >
                 <span *ngIf="isInCart(prod.id)" class="flex items-center gap-1">

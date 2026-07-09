@@ -145,8 +145,8 @@ Executed when the browser checks context state and finds no active session token
 
 ### 5. Pre-fetch Product Bundles Catalogue (POST)
 *   **Endpoint:** `/services/data/v65.0/connect/pcm/products`
-*   **Service Method:** `RcaApiService.getProducts`
-*   **Description:** Triggers load of all active products tagged as `Bundle` on category sidebar entrance.
+*   **Service Method:** `CrmService.getProducts`
+*   **Description:** Triggers load of all active products tagged as `Bundle` on category sidebar entrance. *(Note: While this API fetches the full catalogue, per MVP UI constraints, the frontend hardcodes the display to only render `Google Cloud Platform RCA` and `Looker New RCA`).*
 *   **Payload:**
     ```json
     {
@@ -185,8 +185,8 @@ Executed when the browser checks context state and finds no active session token
 
 ### 6. Faceted Product Search & Filtering (POST)
 *   **Endpoint:** `/services/data/v66.0/connect/pcm/products?productClassificationId=<classificationId>&include=/products`
-*   **Service Method:** `RcaApiService.facetedProductSearch`
-*   **Description:** Refines product catalogue using sidebar filters.
+*   **Service Method:** `CrmService.facetedProductSearch`
+*   **Description:** Refines product catalogue using sidebar filters. *(Note: For MVP, this API call is bypassed in the UI. The application instead performs instantaneous local filtering using the pre-fetched payload from API 5).*
 *   **Payload:**
     ```json
     {
