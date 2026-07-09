@@ -52,7 +52,7 @@ describe('QuoteWizardComponent (Subscription Flow & Configurations)', () => {
 
   beforeEach(async () => {
     mockCrmService = jasmine.createSpyObj('CrmService', ['getQuoteDetails', 'getPicklists', 'submitQuoteDetails']);
-    mockPeriodService = jasmine.createSpyObj('PeriodService', ['generateYearlyPeriods', 'generateCustomPeriods', 'validatePeriods']);
+    mockPeriodService = jasmine.createSpyObj('PeriodService', ['generateYearlyPeriods', 'generateCustomPeriods', 'validatePeriods', 'getDefaultChildProducts']);
     mockRouter = jasmine.createSpyObj('Router', ['navigate']);
 
     // Set up default localStorage/sessionStorage spies or values
@@ -79,6 +79,12 @@ describe('QuoteWizardComponent (Subscription Flow & Configurations)', () => {
     mockCrmService.getQuoteDetails.and.returnValue(of(mockQuoteDetails));
     mockCrmService.getPicklists.and.returnValue(of(mockPicklists));
     mockPeriodService.validatePeriods.and.returnValue({ isValid: true, errors: [] });
+    mockPeriodService.getDefaultChildProducts.and.returnValue([
+      { name: 'Standard User', quantity: 0, region: '', gcpProjectId: '', lookerInstanceId: '', discount: 0 },
+      { name: 'Developer User', quantity: 0, region: '', gcpProjectId: '', lookerInstanceId: '', discount: 0 },
+      { name: 'Viewer User', quantity: 0, region: '', gcpProjectId: '', lookerInstanceId: '', discount: 0 },
+      { name: 'Non-prod', quantity: 0, region: '', gcpProjectId: '', lookerInstanceId: '', discount: 0 }
+    ]);
 
     fixture = TestBed.createComponent(QuoteWizardComponent);
     component = fixture.componentInstance;

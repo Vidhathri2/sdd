@@ -1,175 +1,108 @@
-.quote-wizard-container {
-  font-family: 'Inter', 'Roboto', sans-serif;
-  color: #1f2937;
+.quote-wizard-layout {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  color: #1e293b;
 }
 
-.top-bar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1rem 2rem;
-  background-color: #ffffff;
-  border-bottom: 1px solid #e5e7eb;
+.sidebar-help {
+  background-color: #f0f2f5;
 }
 
-.tabs {
-  font-weight: 600;
-  color: #374151;
+.sidebar-title {
+  color: #0f172a;
 }
 
-.btn-outline {
-  border: 1px solid #d1d5db;
-  background: white;
-  padding: 0.5rem 1rem;
-  border-radius: 0.375rem;
-  margin-right: 0.5rem;
-  font-weight: 500;
-  transition: all 0.2s;
+.sidebar-desc p {
+  line-height: 1.6;
 }
 
-.btn-outline:hover {
-  background: #f9fafb;
+.workspace-card {
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
 }
 
-.btn-primary {
-  color: white;
-  padding: 0.5rem 1rem;
-  border-radius: 0.375rem;
-  font-weight: 500;
-  border: none;
-  cursor: pointer;
-  transition: opacity 0.2s;
+/* Custom styled inputs and dropdowns */
+.input-wrapper {
+  transition: all 0.2s ease-in-out;
 }
 
-.btn-primary:hover {
-  opacity: 0.9;
+.input-wrapper:focus-within {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
 }
 
-.btn-primary:disabled {
-  background-color: #9ca3af;
-  cursor: not-allowed;
-}
-
-.sub-header {
-  padding: 2rem 2rem 1rem 2rem;
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
-}
-
-.quote-title h1 {
-  font-size: 1.875rem;
+.field-label {
+  display: block;
+  margin-bottom: 2px;
+  font-size: 11px;
   font-weight: 700;
-  margin: 0;
+  color: #64748b;
 }
 
-.quote-summary {
-  display: flex;
-  gap: 1.5rem;
-  font-size: 0.875rem;
-  color: #4b5563;
-}
-
-.tabs-nav {
-  display: flex;
-  padding: 0 2rem;
-  border-bottom: 1px solid #e5e7eb;
-  margin-bottom: 2rem;
-}
-
-.tabs-nav button {
-  padding: 1rem 1.5rem;
-  background: none;
-  border: none;
-  border-bottom: 2px solid transparent;
-  font-weight: 500;
-  color: #6b7280;
+select {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
   cursor: pointer;
 }
+select::-ms-expand {
+  display: none;
+}
 
-.tabs-nav button.active {
+/* Tab button active state */
+.tab-btn.active {
   color: #0f62fe;
   border-bottom-color: #0f62fe;
 }
 
-.tab-content {
-  padding: 0 2rem;
-  max-width: 1200px;
+.tab-btn:hover {
+  color: #0f172a;
 }
 
-.form-section {
-  background: white;
-  padding: 1.5rem;
-  border-radius: 0.5rem;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-  margin-bottom: 1.5rem;
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 1.5rem;
+/* Button hover effects */
+.btn-action-outline:hover {
+  border-color: #cbd5e1;
+  background-color: #f8fafc;
 }
 
-.form-section h3 {
-  grid-column: span 2;
-  font-size: 1.125rem;
-  font-weight: 600;
-  margin-bottom: 0.5rem;
-  margin-top: 0;
+.btn-action-primary:hover {
+  background-color: #1d4ed8;
 }
 
-.form-section input, .form-section select {
-  width: 100%;
-  padding: 0.5rem;
-  border: 1px solid #d1d5db;
-  border-radius: 0.375rem;
+.btn-footer-outline:hover {
+  border-color: #cbd5e1;
+  background-color: #f8fafc;
 }
 
-.payment-account-card {
-  background: white;
-  padding: 1.5rem;
-  border-radius: 0.5rem;
-  margin-bottom: 2rem;
-}
-
-.primary-badge {
-  display: inline-block;
-  padding: 0.25rem 0.5rem;
-  border-radius: 9999px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  margin-bottom: 1rem;
-}
-
-.account-details {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 1rem;
-  font-size: 0.875rem;
-  color: #4b5563;
-}
-
-.dates {
-  font-size: 1.125rem;
-  font-weight: 500;
-  margin-bottom: 1.5rem;
+.btn-footer-submit:hover:not(:disabled) {
+  background-color: #1d4ed8;
 }
 
 .empty-state-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 4rem 2rem;
-  border-radius: 0.5rem;
+  border: 2px dashed #e2e8f0;
 }
 
-.period-card {
-  background: white;
-  border-radius: 0.5rem;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+.modal-content {
+  animation: slideUp 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.period-card h4 {
-  margin: 0;
-  font-size: 1rem;
-  font-weight: 600;
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
+
+/* Hide native date picker indicator to prevent clashing with custom SVG icon */
+input[type="date"]::-webkit-calendar-picker-indicator {
+  opacity: 0;
+  cursor: pointer;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+

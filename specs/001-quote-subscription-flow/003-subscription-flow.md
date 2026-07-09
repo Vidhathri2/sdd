@@ -6,7 +6,7 @@
 
 ## 1. User Interface & Layout
 
-The Quote Details & Subscription Periods configuration page is a split, double-tab interface where the quote properties and temporal ramp schedules are defined and configured. The interface features a Salesforce-style light theme with a light grey background (`#f0f2f5`) and clean sans-serif typography (system-ui / Inter).
+The Quote Details & Subscription Periods configuration page is a unified page layout centering the interactive quote cards and forms. The interface features a Salesforce-style light theme with a light grey background (`#f0f2f5`) and clean sans-serif typography (system-ui / Inter).
 
 ### Page Header & Actions
 - **Top Bar**: Shows the account logo/info (e.g., `Cymbal / cymbal.com` on the left with a circular folder icon), a tabbed document interface (`Quote 1` with a `+` tab), and top-right actions:

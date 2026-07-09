@@ -1,100 +1,496 @@
-<div class="quote-wizard-container bg-[#f0f2f5] min-h-screen">
-  <header class="top-bar">
-    <div class="account-info">Cymbal / cymbal.com</div>
-    <div class="tabs">Quote 1</div>
-    <div class="actions">
-      <button class="btn-outline preview-btn">Preview approval</button>
-      <button class="btn-primary create-contract-btn bg-[#0f62fe]">Create contract</button>
-    </div>
-  </header>
-  
-  <div class="sub-header">
-    <div class="quote-title">
-      <h1>{{ quoteDetails?.quoteNumber || 'Q-____' }} {{ quoteDetails?.configuredProducts?.[0] || '' }}</h1>
-    </div>
-    <div class="quote-summary">
-      <span>Contract Start Date: Upon provisioning</span>
-      <span>Term: {{ quoteDetails?.termMonths || 0 }} months</span>
-      <span>Total Contract Value: <strong>$X,XXX,XXX</strong></span>
-    </div>
-  </div>
-
-  <div class="tabs-nav">
-    <button [class.active]="activeTab === 'details'" (click)="activeTab = 'details'">Details</button>
-    <button [class.active]="activeTab === 'plans'" (click)="activeTab = 'plans'">Plans & Discounts</button>
-  </div>
-
-  <div class="tab-content details-tab" [hidden]="activeTab !== 'details'">
-    <form [formGroup]="detailsForm">
-      <div class="form-section">
-        <h3>Quote Details</h3>
-        <input formControlName="primaryContact" placeholder="Primary Contact" />
-        <input formControlName="salesChannel" placeholder="Sales Channel" />
-        <select formControlName="operationType">
-          <option *ngFor="let opt of operationTypeOptions" [value]="opt">{{opt}}</option>
-        </select>
-        <input type="date" formControlName="quoteExpirationDate" />
-      </div>
-
-      <div class="form-section">
-        <h3>Subscription Details</h3>
-        <select formControlName="billingFrequency">
-          <option *ngFor="let opt of billingFrequencyOptions" [value]="opt">{{opt}}</option>
-        </select>
-        <select formControlName="termStartsOn">
-          <option *ngFor="let opt of termStartsOnOptions" [value]="opt">{{opt}}</option>
-        </select>
-        <input type="date" formControlName="termStartDate" (change)="onTermStartDateChange($any($event.target).value)" />
-        <input type="date" formControlName="termEndDate" />
-      </div>
-
-      <div class="payment-account-card border shadow-sm rounded">
-        <div class="header flex justify-between">
-          <h4>Payment Account</h4>
+<div class="quote-wizard-layout bg-[#f0f2f5] h-screen overflow-hidden p-2 md:p-3 lg:p-4 flex justify-center items-stretch">
+  <div class="workspace-card bg-white rounded-xl shadow-md w-full h-full flex flex-col overflow-hidden border border-gray-200 transition-all duration-300 max-w-[1380px]">
+       
+      <!-- Card Header -->
+      <header class="card-header border-b border-gray-100 px-6 py-2.5 flex justify-between items-center">
+        <div class="customer-branding flex items-center">
+          <div class="brand-logo w-8 h-8 bg-[#e0f2fe] rounded-lg flex items-center justify-center mr-2 text-blue-600 font-bold text-sm">
+            C
+          </div>
+          <div>
+            <div class="brand-name font-bold text-gray-800 text-sm leading-tight">Cymbal</div>
+            <div class="brand-url text-[10px] text-gray-400">cymbal.com</div>
+          </div>
         </div>
-        <span class="primary-badge bg-purple-100 text-purple-700">Primary</span>
-        <div class="account-details">
-          <div class="payment-account-name font-bold text-dark">{{ paymentAccount?.name }}</div>
-          <div class="billing-account-number">{{ paymentAccount?.billingAccount }}</div>
-          <div class="payment-account-id">{{ paymentAccount?.paymentAccountId }}</div>
-          <div class="billing-address">{{ paymentAccount?.billingAddress }}</div>
-          <div class="billing-currency">{{ paymentAccount?.billingCurrency }}</div>
+
+        <div class="opp-info text-right">
+          <div class="opp-label text-[9px] uppercase font-bold text-gray-400 tracking-wider">Opportunity</div>
+          <div class="opp-name font-bold text-gray-800 text-xs">{{ quoteDetails?.opportunityName || 'ALL opportunity' }}</div>
+        </div>
+      </header>
+
+      <!-- Tabs and Actions Sub-header -->
+      <div class="tabs-actions-bar px-6 py-2 border-b border-gray-100 bg-gray-50/50 flex justify-between items-center">
+        <div class="quote-tabs flex items-center space-x-2">
+          <div class="quote-tab active bg-[#e0f2fe] text-[#0369a1] px-3 py-1 rounded-full text-xs font-semibold border border-[#bae6fd]">
+            Quote 1
+          </div>
+          <button class="add-tab-btn w-6 h-6 rounded-full border border-gray-300 flex items-center justify-center hover:bg-gray-100 transition text-gray-500 text-sm font-light">
+            +
+          </button>
+        </div>
+
+        <div class="action-buttons flex space-x-2">
+          <button class="btn-action-outline flex items-center px-3 py-1.5 border border-gray-300 rounded-lg text-xs font-semibold text-gray-600 bg-white hover:bg-gray-50 transition shadow-sm">
+            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-1.5 text-gray-400">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+              <circle cx="12" cy="7" r="4"></circle>
+            </svg>
+            Preview approval
+          </button>
+          <button class="btn-action-primary flex items-center px-3 py-1.5 bg-blue-600 hover:bg-blue-700 transition rounded-lg text-xs font-semibold text-white shadow-sm">
+            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-1.5 text-blue-200">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+              <polyline points="14 2 14 8 20 8"></polyline>
+              <line x1="16" y1="13" x2="8" y2="13"></line>
+              <line x1="16" y1="17" x2="8" y2="17"></line>
+            </svg>
+            Create contract
+          </button>
         </div>
       </div>
-    </form>
-  </div>
 
-  <div class="tab-content plans-tab" [hidden]="activeTab !== 'plans'">
-    <div class="dates">
-      Subscription Start: {{ subscriptionStartDate }} | End: {{ subscriptionEndDate }}
-    </div>
+      <!-- Quote Summary Row -->
+      <div class="quote-summary-row px-6 py-2.5 flex justify-between items-center border-b border-gray-100">
+        <div class="quote-title-block">
+          <div class="quote-number text-[10px] text-gray-400 leading-none">{{ quoteDetails?.QuoteNumber || 'Q-1234' }}</div>
+          <div class="quote-name text-lg font-bold text-gray-800 mt-0.5">{{ quoteDetails?.configuredProducts?.[0] || 'Looker Core' }}</div>
+        </div>
 
-    <div *ngIf="periods.length === 0" class="empty-state-container bg-white border p-8 text-center">
-      <p>You can choose to create yearly or a custom period</p>
-      <button class="create-periods-btn btn-primary" (click)="openCreatePeriodsModal()">+ Create subscription periods</button>
-    </div>
-
-    <div *ngIf="periods.length > 0" class="periods-container">
-      <div *ngFor="let period of periods" class="period-card border mb-4 p-4">
-        <h4>{{ period.name }} ({{ period.startDate }} to {{ period.endDate }})</h4>
+        <div class="quote-meta flex items-center space-x-6 text-right">
+          <div class="meta-item">
+            <div class="meta-label text-[9px] text-gray-400 font-bold uppercase tracking-wider">Contract Start Date</div>
+            <div class="meta-val font-semibold text-gray-700 text-xs mt-0.5">Upon provisioning</div>
+          </div>
+          <div class="meta-item">
+            <div class="meta-label text-[9px] text-gray-400 font-bold uppercase tracking-wider">Term</div>
+            <div class="meta-val font-semibold text-gray-700 text-xs mt-0.5">{{ quoteDetails?.termMonths ? quoteDetails.termMonths + ' months' : '36 months' }}</div>
+          </div>
+          <div class="meta-item">
+            <div class="meta-label text-[9px] text-gray-400 font-bold uppercase tracking-wider">Total Contract Value</div>
+            <div class="meta-val font-bold text-gray-800 text-xs mt-0.5">$X,XXX,XXX</div>
+          </div>
+          <button class="more-actions-btn p-1 hover:bg-gray-100 rounded-lg text-gray-400 transition">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="1"></circle>
+              <circle cx="12" cy="5" r="1"></circle>
+              <circle cx="12" cy="19" r="1"></circle>
+            </svg>
+          </button>
+        </div>
       </div>
-      <button class="add-period-btn btn-outline" (click)="addPeriod()">Add Period</button>
-    </div>
-  </div>
 
-  <footer class="footer-actions flex justify-end p-4 border-t">
-    <button class="btn-outline">Cancel</button>
-    <button class="btn-outline">Save</button>
-    <button class="submit-btn btn-primary bg-[#0f62fe]" type="submit" [disabled]="isSubmitDisabled" (click)="submitQuote()">Submit</button>
-  </footer>
+      <!-- Tab Navigation -->
+      <nav class="inner-tabs px-6 border-b border-gray-100 flex space-x-6">
+        <button [class.active]="activeTab === 'details'" class="tab-btn py-2 text-xs font-semibold border-b-2 border-transparent transition" (click)="activeTab = 'details'">
+          Details
+        </button>
+        <button [class.active]="activeTab === 'plans'" class="tab-btn py-2 text-xs font-semibold border-b-2 border-transparent transition" (click)="activeTab = 'plans'">
+          Products & Discounts
+        </button>
+      </nav>
+
+      <!-- TAB 1: DETAILS -->
+      <div class="tab-pane px-6 py-4 bg-gray-50/30 flex-1 overflow-hidden" [hidden]="activeTab !== 'details'">
+        <form [formGroup]="detailsForm" class="grid grid-cols-[1fr_320px] gap-4 items-start">
+          
+          <!-- Left Column (Form Sections) -->
+          <div class="form-sections-col space-y-4 flex-1">
+            
+            <!-- Quote details -->
+            <div class="form-section">
+              <h3 class="text-sm font-bold text-gray-800 mb-2">Quote details</h3>
+              <div class="grid grid-cols-4 gap-3">
+                
+                <!-- Primary contact -->
+                <div class="field-group border border-gray-200 rounded-lg p-2 bg-white flex items-center hover:border-gray-300 transition-colors focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500">
+                  <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150" alt="Sarah Connor" class="w-6 h-6 rounded-full mr-2 object-cover" />
+                  <div class="flex flex-col flex-1 min-w-0">
+                    <span class="text-[9px] text-gray-400 font-bold uppercase tracking-wider leading-none">Primary contact</span>
+                    <input type="text" formControlName="primaryContact" class="outline-none text-xs font-semibold text-gray-700 bg-transparent mt-0.5 w-full p-0 border-none" />
+                  </div>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-gray-400 ml-1.5 flex-shrink-0 pointer-events-none">
+                    <polyline points="6 9 12 15 18 9"></polyline>
+                  </svg>
+                </div>
+
+                <!-- Sales Channel -->
+                <div class="field-group border border-gray-200 rounded-lg p-2 bg-white flex items-center hover:border-gray-300 transition-colors focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500 relative">
+                  <div class="flex flex-col flex-1 min-w-0">
+                    <span class="text-[9px] text-gray-400 font-bold uppercase tracking-wider leading-none">Sales Channel</span>
+                    <select formControlName="salesChannel" class="outline-none text-xs font-semibold text-gray-700 bg-transparent mt-0.5 w-full p-0 border-none appearance-none pr-4">
+                      <option value="Direct">Direct</option>
+                      <option value="Indirect">Indirect</option>
+                    </select>
+                  </div>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-gray-400 absolute right-2 bottom-2.5 pointer-events-none">
+                    <polyline points="6 9 12 15 18 9"></polyline>
+                  </svg>
+                </div>
+
+                <!-- Operation Type -->
+                <div class="field-group border border-gray-200 rounded-lg p-2 bg-white flex items-center hover:border-gray-300 transition-colors focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500 relative">
+                  <div class="flex flex-col flex-1 min-w-0">
+                    <span class="text-[9px] text-gray-400 font-bold uppercase tracking-wider leading-none">Operation Type</span>
+                    <select formControlName="operationType" class="outline-none text-xs font-semibold text-gray-700 bg-transparent mt-0.5 w-full p-0 border-none appearance-none pr-4">
+                      <option *ngFor="let opt of operationTypeOptions" [value]="opt">{{opt}}</option>
+                    </select>
+                  </div>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-gray-400 absolute right-2 bottom-2.5 pointer-events-none">
+                    <polyline points="6 9 12 15 18 9"></polyline>
+                  </svg>
+                </div>
+
+                <!-- Quote Expiration Date -->
+                <div class="field-group border border-gray-200 rounded-lg p-2 bg-white flex items-center hover:border-gray-300 transition-colors focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500 relative">
+                  <div class="flex flex-col flex-1 min-w-0">
+                    <span class="text-[9px] text-gray-400 font-bold uppercase tracking-wider leading-none">Quote Expiration Date</span>
+                    <input type="date" formControlName="quoteExpirationDate" class="outline-none text-xs font-semibold text-gray-700 bg-transparent mt-0.5 w-full p-0 border-none relative z-10" />
+                  </div>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-gray-400 absolute right-2 bottom-2.5 pointer-events-none">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                    <line x1="16" y1="2" x2="16" y2="6"></line>
+                    <line x1="8" y1="2" x2="8" y2="6"></line>
+                    <line x1="3" y1="10" x2="21" y2="10"></line>
+                  </svg>
+                </div>
+
+              </div>
+            </div>
+
+            <!-- Subscription details -->
+            <div class="form-section">
+              <h3 class="text-sm font-bold text-gray-700 mb-2">Subscription details</h3>
+              <div class="grid grid-cols-4 gap-3">
+                
+                <!-- Billing Frequency -->
+                <div class="field-group border border-gray-200 rounded-lg p-2 bg-white flex items-center hover:border-gray-300 transition-colors focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500 relative">
+                  <div class="flex flex-col flex-1 min-w-0">
+                    <span class="text-[9px] text-gray-400 font-bold uppercase tracking-wider leading-none">Billing Frequency</span>
+                    <select formControlName="billingFrequency" class="outline-none text-xs font-semibold text-gray-700 bg-transparent mt-0.5 w-full p-0 border-none appearance-none pr-4">
+                      <option *ngFor="let opt of billingFrequencyOptions" [value]="opt">{{opt}}</option>
+                    </select>
+                  </div>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-gray-400 absolute right-2 bottom-2.5 pointer-events-none">
+                    <polyline points="6 9 12 15 18 9"></polyline>
+                  </svg>
+                </div>
+
+                <!-- Term Starts on -->
+                <div class="field-group border border-gray-200 rounded-lg p-2 bg-white flex items-center hover:border-gray-300 transition-colors focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500 relative">
+                  <div class="flex flex-col flex-1 min-w-0">
+                    <span class="text-[9px] text-gray-400 font-bold uppercase tracking-wider leading-none">Term Starts on</span>
+                    <select formControlName="termStartsOn" class="outline-none text-xs font-semibold text-gray-700 bg-transparent mt-0.5 w-full p-0 border-none appearance-none pr-4">
+                      <option *ngFor="let opt of termStartsOnOptions" [value]="opt">{{opt}}</option>
+                    </select>
+                  </div>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-gray-400 absolute right-2 bottom-2.5 pointer-events-none">
+                    <polyline points="6 9 12 15 18 9"></polyline>
+                  </svg>
+                </div>
+
+                <!-- Term Start Date -->
+                <div class="field-group border border-gray-200 rounded-lg p-2 bg-white flex items-center hover:border-gray-300 transition-colors focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500 relative" [class.bg-gray-100]="detailsForm.get('termStartDate')?.disabled">
+                  <div class="flex flex-col flex-1 min-w-0">
+                    <span class="text-[9px] text-gray-400 font-bold uppercase tracking-wider leading-none">Term Start Date</span>
+                    <input type="date" formControlName="termStartDate" (change)="onTermStartDateChange($any($event.target).value)" class="outline-none text-xs font-semibold text-gray-700 bg-transparent mt-0.5 w-full p-0 border-none relative z-10" />
+                  </div>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-gray-400 absolute right-2 bottom-2.5 pointer-events-none">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                    <line x1="16" y1="2" x2="16" y2="6"></line>
+                    <line x1="8" y1="2" x2="8" y2="6"></line>
+                    <line x1="3" y1="10" x2="21" y2="10"></line>
+                  </svg>
+                </div>
+
+                <!-- Term End Date -->
+                <div class="field-group border border-gray-200 rounded-lg p-2 bg-white flex items-center hover:border-gray-300 transition-colors focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500 relative">
+                  <div class="flex flex-col flex-1 min-w-0">
+                    <span class="text-[9px] text-gray-400 font-bold uppercase tracking-wider leading-none">Term End Date</span>
+                    <input type="date" formControlName="termEndDate" class="outline-none text-xs font-semibold text-gray-700 bg-transparent mt-0.5 w-full p-0 border-none relative z-10" />
+                  </div>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-gray-400 absolute right-2 bottom-2.5 pointer-events-none">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                    <line x1="16" y1="2" x2="16" y2="6"></line>
+                    <line x1="8" y1="2" x2="8" y2="6"></line>
+                    <line x1="3" y1="10" x2="21" y2="10"></line>
+                  </svg>
+                </div>
+
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Right Column: Payment Account -->
+          <div class="payment-account-card bg-white p-4 rounded-xl border border-gray-200/80 shadow-sm">
+            <header class="flex items-center border-b border-gray-100 pb-2 mb-3">
+              <h4 class="text-xs font-bold text-gray-700 uppercase tracking-wider mr-2">Payment Account</h4>
+              <button class="edit-btn p-1 hover:bg-gray-100 rounded-lg text-gray-400 hover:text-gray-600 transition">
+                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path>
+                </svg>
+              </button>
+            </header>
+
+            <span class="primary-badge bg-purple-100 text-purple-700 border border-purple-100 px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider inline-block mb-2">
+              Primary
+            </span>
+
+            <div class="account-details space-y-2.5">
+              <div class="detail-item">
+                <div class="detail-label text-[10px] font-bold uppercase tracking-wider text-gray-400">Account Name</div>
+                <div class="payment-account-name detail-val font-bold text-gray-800 text-xs mt-0.5">{{ paymentAccount?.name || 'XXX XXXXXX' }}</div>
+              </div>
+              <div class="detail-item">
+                <div class="detail-label text-[10px] font-bold uppercase tracking-wider text-gray-400">Billing Account</div>
+                <div class="billing-account-number detail-val text-gray-600 text-xs mt-0.5">{{ paymentAccount?.billingAccount || 'XXXXXX-XXXXXX-XXXXXXX' }}</div>
+              </div>
+              <div class="detail-item">
+                <div class="detail-label text-[10px] font-bold uppercase tracking-wider text-gray-400">Payment Account ID</div>
+                <div class="detail-val text-gray-600 text-xs mt-0.5">{{ paymentAccount?.paymentAccountId || 'XXXXXX-XXXXXX-XXXXXXX' }}</div>
+              </div>
+              <div class="detail-item">
+                <div class="detail-label text-[10px] font-bold uppercase tracking-wider text-gray-400">Billing Address</div>
+                <div class="detail-val text-gray-600 text-[11px] mt-0.5 leading-normal">{{ paymentAccount?.billingAddress || '5920 Niagara River Parkway, Niagara Falls ON L2E 6X8 CA' }}</div>
+              </div>
+              <div class="detail-item">
+                <div class="detail-label text-[10px] font-bold uppercase tracking-wider text-gray-400">Billing Currency</div>
+                <div class="detail-val text-gray-600 text-xs mt-0.5 font-semibold">{{ paymentAccount?.billingCurrency || 'CAD' }}</div>
+              </div>
+            </div>
+          </div>
+
+        </form>
+      </div>
+
+      <!-- TAB 2: PLANS & DISCOUNTS -->
+      <div class="tab-pane px-6 py-4 bg-gray-50/30 flex-1 overflow-hidden" [hidden]="activeTab !== 'plans'">
+        
+        <!-- Period Dates Inputs Header -->
+        <div class="subscription-periods-header flex justify-between items-center mb-3">
+          <h2 class="text-base font-bold text-gray-800">Subscription Periods</h2>
+          <div class="period-dates-inputs flex space-x-3">
+            
+            <div class="date-field flex flex-col">
+              <label class="text-[9px] text-gray-400 uppercase font-bold tracking-wider mb-0.5">Subscription Start Date</label>
+              <div class="input-wrapper flex items-center border border-gray-300 rounded-lg px-2.5 py-1 bg-white focus-within:border-blue-600 transition shadow-sm w-[150px]">
+                <input type="date" [value]="subscriptionStartDate" (change)="onSubscriptionStartDateChange($any($event.target).value)" class="flex-1 outline-none text-xs text-gray-600 bg-transparent" />
+              </div>
+            </div>
+
+            <div class="date-field flex flex-col">
+              <label class="text-[9px] text-gray-400 uppercase font-bold tracking-wider mb-0.5">Subscription End Date</label>
+              <div class="input-wrapper flex items-center border border-gray-300 rounded-lg px-2.5 py-1 bg-white focus-within:border-blue-600 transition shadow-sm w-[150px]">
+                <input type="date" [value]="subscriptionEndDate" (change)="onSubscriptionEndDateChange($any($event.target).value)" class="flex-1 outline-none text-xs text-gray-600 bg-transparent" />
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Empty State -->
+        <div *ngIf="periods.length === 0" class="empty-state-container bg-white border border-gray-200/80 rounded-xl p-6 text-center shadow-sm flex flex-col items-center justify-center space-y-2">
+          <button class="create-periods-btn px-4 py-2 bg-blue-600 hover:bg-blue-700 transition rounded-lg text-xs font-semibold text-white shadow-sm" (click)="openCreatePeriodsModal()">
+            + Create subscription periods
+          </button>
+          <p class="text-xs text-gray-400">You can choose to create yearly or a custom period</p>
+        </div>
+
+        <!-- Periods Ramp Configured List -->
+        <div *ngIf="periods.length > 0" class="periods-container space-y-3">
+          <div *ngFor="let period of periods; let idx = index" class="period-card border border-gray-200 bg-white rounded-xl overflow-hidden shadow-sm">
+            <header class="period-card-header px-4 py-2 bg-white flex justify-between items-center cursor-pointer hover:bg-gray-50 transition border-b border-gray-100/50" (click)="togglePeriodExpansion(period)">
+              <h4 class="text-xs font-bold text-gray-700">{{ period.name }}</h4>
+              
+              <div class="flex items-center space-x-4">
+                <!-- Collapsed dates preview -->
+                <div class="flex space-x-4 text-[10px] text-gray-400 font-semibold" *ngIf="!period.expanded">
+                  <div class="flex items-center space-x-1">
+                    <span>{{ period.name }} Start date</span>
+                    <span class="text-gray-600">{{ period.startDate }}</span>
+                  </div>
+                  <div class="flex items-center space-x-1">
+                    <span>{{ period.name }} End date</span>
+                    <span class="text-gray-600">{{ period.endDate }}</span>
+                  </div>
+                </div>
+
+                <div class="flex items-center space-x-2 text-gray-400">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="cursor-pointer hover:text-gray-600">
+                    <circle cx="12" cy="12" r="1.5"></circle>
+                    <circle cx="12" cy="5" r="1.5"></circle>
+                    <circle cx="12" cy="19" r="1.5"></circle>
+                  </svg>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="transition-transform duration-200" [class.rotate-180]="period.expanded">
+                    <polyline points="6 9 12 15 18 9"></polyline>
+                  </svg>
+                </div>
+              </div>
+            </header>
+
+            <!-- Expanded Period Content -->
+            <div class="period-card-body p-3 bg-white space-y-3" *ngIf="period.expanded" (click)="$event.stopPropagation()">
+              <!-- Top Config Row: Platform, Start, End, Discount -->
+              <div class="grid grid-cols-4 gap-3 items-start">
+                
+                <!-- Platform selection -->
+                <div class="flex flex-col text-left">
+                  <div class="border border-gray-200 rounded-lg px-2 py-0.5 bg-white focus-within:border-blue-600 transition flex flex-col relative">
+                    <span class="text-[8px] text-gray-400 font-bold uppercase tracking-wider leading-none">Platform</span>
+                    <select [(ngModel)]="period.platformProduct" class="outline-none text-xs text-gray-800 bg-transparent mt-0.5 w-full appearance-none pr-5">
+                      <option value="">Select Platform</option>
+                      <option value="Standard Annual Subscription">Standard Annual Subscription</option>
+                      <option value="Premium Annual Subscription">Premium Annual Subscription</option>
+                    </select>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-gray-400 absolute right-2.5 bottom-1.5 pointer-events-none">
+                      <polyline points="6 9 12 15 18 9"></polyline>
+                    </svg>
+                  </div>
+                  <span class="text-[9px] text-gray-400 mt-0.5 font-medium pl-1">
+                    {{ period.platformProduct === 'Standard Annual Subscription' ? '$5,000.00 / year' : period.platformProduct === 'Premium Annual Subscription' ? '$10,000.00 / year' : '' }}
+                  </span>
+                </div>
+
+                <!-- Start Date -->
+                <div class="flex flex-col text-left">
+                  <div class="border border-gray-200 rounded-lg px-2 py-0.5 bg-gray-50/50 flex flex-col">
+                    <span class="text-[8px] text-gray-400 font-bold uppercase tracking-wider leading-none">{{ period.name }} Start date</span>
+                    <input type="date" [(ngModel)]="period.startDate" disabled class="outline-none text-xs text-gray-500 bg-transparent mt-0.5 w-full" />
+                  </div>
+                </div>
+
+                <!-- End Date -->
+                <div class="flex flex-col text-left">
+                  <div class="border border-gray-200 rounded-lg px-2 py-0.5 bg-gray-50/50 flex flex-col">
+                    <span class="text-[8px] text-gray-400 font-bold uppercase tracking-wider leading-none">{{ period.name }} End date</span>
+                    <input type="date" [(ngModel)]="period.endDate" disabled class="outline-none text-xs text-gray-500 bg-transparent mt-0.5 w-full" />
+                  </div>
+                  <span class="text-[9px] text-gray-400 mt-0.5 font-medium pl-1">
+                    {{ getPeriodDuration(period.startDate, period.endDate) }}
+                  </span>
+                </div>
+
+                <!-- Discount -->
+                <div class="flex flex-col text-left">
+                  <div class="border border-gray-200 rounded-lg px-2 py-0.5 bg-white focus-within:border-blue-600 transition flex flex-col relative">
+                    <span class="text-[8px] text-gray-400 font-bold uppercase tracking-wider leading-none">Discount</span>
+                    <div class="flex items-center mt-0.5">
+                      <input type="number" [(ngModel)]="period.discount" placeholder="Enter" class="outline-none text-xs text-gray-800 bg-transparent w-full pr-3" />
+                      <span class="text-xs text-gray-400 absolute right-2.5 bottom-1">%</span>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+
+              <!-- Child Products Section -->
+              <div class="child-products-table border border-gray-100 rounded-xl overflow-hidden shadow-sm">
+                <div class="bg-gray-50/30 divide-y divide-gray-100">
+                  <div *ngFor="let child of period.childProducts" class="grid grid-cols-[1.5fr_1fr_1fr_1.5fr_1.5fr_1fr] gap-2 px-3 py-1.5 items-center bg-white hover:bg-gray-50/10 transition">
+                    
+                    <!-- Child Label & Price -->
+                    <div class="text-left flex flex-col pl-1">
+                      <span class="text-xs font-bold text-gray-700">{{ child.name }}</span>
+                      <span class="text-[9px] text-gray-400 mt-0.5 font-medium">{{ getChildBasePrice(child.name) }}</span>
+                    </div>
+
+                    <!-- Quantity Input -->
+                    <div class="border border-gray-200 rounded-lg px-2 py-0.5 bg-white focus-within:border-blue-600 transition flex flex-col text-left">
+                      <span class="text-[8px] text-gray-400 font-bold uppercase tracking-wider leading-none">Quantity</span>
+                      <input type="number" [(ngModel)]="child.quantity" class="outline-none text-xs text-gray-800 bg-transparent mt-0.5 w-full" />
+                    </div>
+
+                    <!-- Region Dropdown -->
+                    <div class="border border-gray-200 rounded-lg px-2 py-0.5 bg-white focus-within:border-blue-600 transition flex flex-col text-left relative">
+                      <span class="text-[8px] text-gray-400 font-bold uppercase tracking-wider leading-none">Region</span>
+                      <select [(ngModel)]="child.region" class="outline-none text-xs text-gray-800 bg-transparent mt-0.5 w-full appearance-none pr-3">
+                        <option value="">Select</option>
+                        <option value="Dallas (us-south-1)">Dallas (us-south-1)</option>
+                        <option value="Oregon (us-west-2)">Oregon (us-west-2)</option>
+                        <option value="Iowa (us-central1)">Iowa (us-central1)</option>
+                      </select>
+                      <svg xmlns="http://www.w3.org/2000/svg" width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-gray-400 absolute right-2 bottom-1.5 pointer-events-none">
+                        <polyline points="6 9 12 15 18 9"></polyline>
+                      </svg>
+                    </div>
+
+                    <!-- GCP Project ID Input -->
+                    <div class="border border-gray-200 rounded-lg px-2 py-0.5 bg-white focus-within:border-blue-600 transition flex flex-col text-left">
+                      <span class="text-[8px] text-gray-400 font-bold uppercase tracking-wider leading-none">GCP Project ID</span>
+                      <input type="text" [(ngModel)]="child.gcpProjectId" placeholder="Enter" class="outline-none text-xs text-gray-800 bg-transparent mt-0.5 w-full" />
+                    </div>
+
+                    <!-- Looker Instance ID Input -->
+                    <div class="border border-gray-200 rounded-lg px-2 py-0.5 bg-white focus-within:border-blue-600 transition flex flex-col text-left">
+                      <span class="text-[8px] text-gray-400 font-bold uppercase tracking-wider leading-none">Looker Instance Id</span>
+                      <input type="text" [(ngModel)]="child.lookerInstanceId" placeholder="Enter" class="outline-none text-xs text-gray-800 bg-transparent mt-0.5 w-full" />
+                    </div>
+
+                    <!-- Discount Input -->
+                    <div class="border border-gray-200 rounded-lg px-2 py-0.5 bg-white focus-within:border-blue-600 transition flex flex-col text-left relative pr-1">
+                      <span class="text-[8px] text-gray-400 font-bold uppercase tracking-wider leading-none">Discount</span>
+                      <div class="flex items-center mt-0.5">
+                        <input type="number" [(ngModel)]="child.discount" placeholder="Enter" class="outline-none text-xs text-gray-800 bg-transparent w-full pr-3" />
+                        <span class="text-[10px] text-gray-400 absolute right-2 bottom-1">%</span>
+                      </div>
+                    </div>
+
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+          
+          <button class="add-period-btn flex items-center px-3 py-1.5 border border-blue-600 rounded-lg text-xs font-semibold text-blue-600 bg-white hover:bg-blue-50 transition shadow-sm mt-3" (click)="addPeriod()">
+            + Add Period
+          </button>
+        </div>
+
+      </div>
+
+      <!-- Card Footer Actions -->
+      <footer class="footer-actions flex justify-end items-center px-6 py-2.5 border-t border-gray-100 bg-gray-50/20 space-x-3">
+        <button class="btn-footer-outline px-4 py-1.5 border border-gray-300 rounded-lg text-xs font-semibold text-gray-600 bg-white hover:bg-gray-50 transition shadow-sm" (click)="onBack()">
+          Cancel
+        </button>
+        <button class="btn-footer-outline px-4 py-1.5 border border-gray-300 rounded-lg text-xs font-semibold text-gray-600 bg-white hover:bg-gray-50 transition shadow-sm">
+          Save
+        </button>
+        <button class="btn-footer-submit px-5 py-1.5 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition rounded-lg text-xs font-semibold text-white shadow-sm" type="submit" [disabled]="isSubmitDisabled" (click)="submitQuote()">
+          Submit
+        </button>
+      </footer>
+
+    </div>
 
   <!-- Modal for Creating Periods -->
-  <div class="modal-overlay fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center" *ngIf="showCreatePeriodsModal">
-    <div class="modal-content bg-white p-6 rounded shadow-lg">
-      <h3 class="mb-4">Create Periods</h3>
-      <button class="btn-primary mb-2" (click)="createPeriods('Yearly')">Yearly</button>
-      <button class="btn-primary" (click)="createPeriods('Custom')">Custom</button>
-      <button class="btn-outline mt-4" (click)="closeCreatePeriodsModal()">Cancel</button>
+  <div class="modal-overlay fixed inset-0 bg-black/40 backdrop-blur-[2px] flex items-center justify-center z-50" *ngIf="showCreatePeriodsModal">
+    <div class="modal-content bg-white p-6 rounded-xl shadow-xl w-full max-w-[420px] border border-gray-100">
+      <h3 class="text-lg font-bold text-gray-800 mb-2">Create Subscription Periods</h3>
+      <p class="text-sm text-gray-400 mb-6 leading-relaxed">Choose the frequency at which you want to ramp up your subscription.</p>
+      
+      <div class="modal-options flex flex-col space-y-3">
+        <button class="px-4 py-3 bg-blue-50 text-blue-700 hover:bg-blue-100 rounded-lg font-semibold text-sm transition text-left flex justify-between items-center" (click)="createPeriods('Yearly')">
+          Yearly (12 Months / Period)
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="9 18 15 12 9 6"></polyline>
+          </svg>
+        </button>
+        <button class="px-4 py-3 bg-gray-50 text-gray-700 hover:bg-gray-100 rounded-lg font-semibold text-sm transition text-left flex justify-between items-center" (click)="createPeriods('Custom')">
+          Custom Duration
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="9 18 15 12 9 6"></polyline>
+          </svg>
+        </button>
+      </div>
+      
+      <div class="flex justify-end mt-8">
+        <button class="px-4 py-2 text-sm font-semibold text-gray-500 hover:text-gray-800 transition" (click)="closeCreatePeriodsModal()">
+          Cancel
+        </button>
+      </div>
     </div>
   </div>
 </div>

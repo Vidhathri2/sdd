@@ -16,6 +16,7 @@ export interface Period {
   platformProduct: string;
   discount: number;
   childProducts: ChildProduct[];
+  expanded?: boolean;
 }
 
 export interface ValidationResult {
@@ -27,6 +28,15 @@ export interface ValidationResult {
   providedIn: 'root'
 })
 export class PeriodService {
+
+  getDefaultChildProducts(): ChildProduct[] {
+    return [
+      { name: 'Standard User', quantity: 0, region: '', gcpProjectId: '', lookerInstanceId: '', discount: 0 },
+      { name: 'Developer User', quantity: 0, region: '', gcpProjectId: '', lookerInstanceId: '', discount: 0 },
+      { name: 'Viewer User', quantity: 0, region: '', gcpProjectId: '', lookerInstanceId: '', discount: 0 },
+      { name: 'Non-prod', quantity: 0, region: '', gcpProjectId: '', lookerInstanceId: '', discount: 0 }
+    ];
+  }
 
   generateYearlyPeriods(startDateStr: string, endDateStr: string): Period[] {
     const periods: Period[] = [];
@@ -50,7 +60,8 @@ export class PeriodService {
         endDate: currentEndDate.toISOString().split('T')[0],
         platformProduct: '',
         discount: 0,
-        childProducts: []
+        childProducts: this.getDefaultChildProducts(),
+        expanded: periodIndex === 1
       });
 
       // Next start date is end date + 1 day
@@ -83,7 +94,8 @@ export class PeriodService {
         endDate: currentEndDate.toISOString().split('T')[0],
         platformProduct: '',
         discount: 0,
-        childProducts: []
+        childProducts: this.getDefaultChildProducts(),
+        expanded: periodIndex === 1
       });
 
       currentStartDate = new Date(currentEndDate);

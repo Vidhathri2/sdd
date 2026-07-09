@@ -138,11 +138,24 @@ export class ProductDiscoveryComponent implements OnInit {
     this.crmService.createQuote(oppId, this.cart).subscribe({
       next: (quoteRes) => {
         if (quoteRes.isSuccess && quoteRes.salesTransactionId) {
-          // Immediately redirect after successful quote creation without chaining getQuoteDetails
-          sessionStorage.setItem('createdQuoteId', quoteRes.salesTransactionId);
-          sessionStorage.setItem('createdQuoteNumber', 'Q-Pending');
-          this.isLoading = false;
-          this.router.navigate(['/quote-details']);
+          this.crmService.getQuoteDetails(quoteRes.salesTransactionId).subscribe({
+            next: (details) => {
+              sessionStorage.setItem('selectedQuoteId', details.Id);
+              sessionStorage.setItem('createdQuoteId', details.Id);
+              sessionStorage.setItem('createdQuoteNumber', details.QuoteNumber);
+              this.isLoading = false;
+              this.router.navigate(['/quote-details']);
+            },
+            error: (err) => {
+              console.error('Failed to get quote details', err);
+              // Fallback routing even if details fails
+              sessionStorage.setItem('selectedQuoteId', quoteRes.salesTransactionId);
+              sessionStorage.setItem('createdQuoteId', quoteRes.salesTransactionId);
+              sessionStorage.setItem('createdQuoteNumber', 'Q-000000');
+              this.isLoading = false;
+              this.router.navigate(['/quote-details']);
+            }
+          });
         } else {
           alert('Failed to place quote transaction.');
           this.isLoading = false;
