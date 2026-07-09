@@ -63,23 +63,23 @@ export class ProductDiscoveryComponent implements OnInit {
   }
 
   applyFilters(): void {
-    let result = [...this.products];
-
-    // Filter by family
-    if (this.selectedFamily) {
-      result = result.filter(p => p.family.toLowerCase() === this.selectedFamily.toLowerCase());
+    // If no search/family filter is active, we can use the pre-fetched products list from API 5
+    if (!this.selectedFamily && !this.searchQuery.trim()) {
+      this.filteredProducts = [...this.products];
+      return;
     }
 
-    // Filter by search query
-    if (this.searchQuery.trim()) {
-      const query = this.searchQuery.toLowerCase().trim();
-      result = result.filter(p => 
-        p.name.toLowerCase().includes(query) || 
-        p.family.toLowerCase().includes(query)
-      );
-    }
-
-    this.filteredProducts = result;
+    this.isLoading = true;
+    this.crmService.facetedProductSearch(this.selectedFamily, this.searchQuery).subscribe({
+      next: (data) => {
+        this.filteredProducts = data;
+        this.isLoading = false;
+      },
+      error: (err) => {
+        console.error('Failed to search products via API 6', err);
+        this.isLoading = false;
+      }
+    });
   }
 
   addToCart(product: Product): void {

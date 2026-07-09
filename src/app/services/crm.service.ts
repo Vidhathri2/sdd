@@ -31,15 +31,81 @@ export interface QuoteResponse {
   providedIn: 'root'
 })
 export class CrmService {
-  private baseUrl = 'https://vector--rcaagivant.sandbox.my.salesforce.com';
+  private baseUrl = '';
 
   constructor(private http: HttpClient) {}
+
+  private getHeaders(): { [header: string]: string } {
+    // 1. Check URL parameters first
+    const urlParams = new URLSearchParams(window.location.search);
+    let token = urlParams.get('accessToken') || urlParams.get('access_token') || urlParams.get('token') || urlParams.get('session_id') || urlParams.get('sid');
+    
+    if (token) {
+      sessionStorage.setItem('accessToken', token);
+      const newUrl = window.location.pathname + window.location.hash;
+      window.history.replaceState({}, '', newUrl);
+    }
+
+    // 2. Check standard storage keys
+    if (!token) {
+      const keys = ['accessToken', 'access_token', 'token', 'session_id', 'sid'];
+      for (const key of keys) {
+        token = sessionStorage.getItem(key) || localStorage.getItem(key) || '';
+        if (token) break;
+      }
+    }
+
+    // 3. Heuristics: scan storage keys for Salesforce-formatted tokens (starting with 00D or containing '!')
+    if (!token) {
+      try {
+        for (let i = 0; i < sessionStorage.length; i++) {
+          const key = sessionStorage.key(i);
+          if (key) {
+            const val = sessionStorage.getItem(key);
+            if (val && (val.startsWith('00D') || val.includes('!'))) {
+              token = val;
+              break;
+            }
+          }
+        }
+        if (!token) {
+          for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key) {
+              const val = localStorage.getItem(key);
+              if (val && (val.startsWith('00D') || val.includes('!'))) {
+                token = val;
+                break;
+              }
+            }
+          }
+        }
+      } catch (e) {}
+    }
+
+    // 4. Check cookies
+    if (!token) {
+      const cookieMatch = document.cookie.match(/(?:^|; )sid=([^;]*)/) || document.cookie.match(/(?:^|; )session_id=([^;]*)/) || document.cookie.match(/(?:^| )access_token=([^;]*)/);
+      if (cookieMatch) {
+        token = decodeURIComponent(cookieMatch[1]);
+      }
+    }
+    
+    const headers: { [header: string]: string } = {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json'
+    };
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+    return headers;
+  }
 
   getOpportunities(): Observable<Opportunity[]> {
     const query = `SELECT Id,Name,StageName,Amount,CloseDate,Owner.Name,AccountId,Account.Name,Account.Website,CreatedDate,(SELECT Contact.Id,Contact.Name FROM OpportunityContactRoles) FROM Opportunity WHERE CreatedDate>=2026-01-28T00:00:00Z ORDER BY CreatedDate DESC LIMIT 5`;
     const url = `${this.baseUrl}/services/data/v65.0/query?q=${encodeURIComponent(query)}`;
 
-    return this.http.get<{ records: any[] }>(url).pipe(
+    return this.http.get<{ records: any[] }>(url, { headers: this.getHeaders() }).pipe(
       map(response => this.mapSalesforceRecords(response.records || [])),
       catchError(error => {
         console.warn('Salesforce API request failed. Falling back to local mock data.', error);
@@ -67,17 +133,72 @@ export class CrmService {
       }
     };
 
-    return this.http.post<{ products: any[] }>(url, payload).pipe(
-      map(response => (response.products || []).map(p => ({
-        id: p.id || p.productId || '',
-        name: p.name || '',
-        family: p.family || 'Other',
-        icon: p.family || 'Other',
-        description: p.description || ''
-      }))),
+    return this.http.post<{ products: any[] }>(url, payload, { headers: this.getHeaders() }).pipe(
+      map(response => (response.products || []).map(p => {
+        const familyVal = p.family || p.fields?.Product2?.Family || p.fields?.Family || 'Other';
+        return {
+          id: p.id || p.productId || '',
+          name: p.name || '',
+          family: familyVal,
+          icon: familyVal,
+          description: p.description || ''
+        };
+      })),
       catchError(error => {
         console.warn('Salesforce PCM API failed. Falling back to local products list.', error);
         return of(this.getMockProducts());
+      })
+    );
+  }
+
+  facetedProductSearch(classificationId?: string, query?: string): Observable<Product[]> {
+    const params: string[] = [];
+    if (classificationId) {
+      params.push(`productClassificationId=${encodeURIComponent(classificationId)}`);
+    }
+    if (query && query.trim()) {
+      params.push(`q=${encodeURIComponent(query.trim())}`);
+    }
+    params.push('include=/products');
+
+    const url = `${this.baseUrl}/services/data/v66.0/connect/pcm/products?${params.join('&')}`;
+    const payload = {
+      language: 'en_US',
+      filter: {
+        criteria: [
+          { property: 'isActive', operator: 'eq', value: true }
+        ]
+      },
+      offset: 0,
+      pageSize: 100
+    };
+
+    return this.http.post<{ products: any[] }>(url, payload, { headers: this.getHeaders() }).pipe(
+      map(response => (response.products || []).map(p => {
+        const familyVal = p.family || p.fields?.Product2?.Family || p.fields?.Family || 'Other';
+        return {
+          id: p.id || p.productId || '',
+          name: p.name || '',
+          family: familyVal,
+          icon: familyVal,
+          description: p.description || ''
+        };
+      })),
+      catchError(error => {
+        console.warn('Salesforce Faceted Search API failed. Falling back to local products list filtering.', error);
+        // Fallback: filter local mock products
+        let mockProducts = this.getMockProducts();
+        if (classificationId) {
+          mockProducts = mockProducts.filter(p => p.family.toLowerCase() === classificationId.toLowerCase());
+        }
+        if (query && query.trim()) {
+          const q = query.toLowerCase().trim();
+          mockProducts = mockProducts.filter(p => 
+            p.name.toLowerCase().includes(q) || 
+            p.family.toLowerCase().includes(q)
+          );
+        }
+        return of(mockProducts);
       })
     );
   }
@@ -138,7 +259,7 @@ export class CrmService {
       }
     };
 
-    return this.http.post<QuoteResponse>(url, payload).pipe(
+    return this.http.post<QuoteResponse>(url, payload, { headers: this.getHeaders() }).pipe(
       catchError(error => {
         console.warn('Salesforce Graph Quote API failed. Falling back to local success mockup.', error);
         return of({
@@ -153,7 +274,7 @@ export class CrmService {
   getQuoteDetails(quoteId: string): Observable<any> {
     const url = `${this.baseUrl}/services/data/v65.0/sobjects/Quote/${quoteId}`;
 
-    return this.http.get<any>(url).pipe(
+    return this.http.get<any>(url, { headers: this.getHeaders() }).pipe(
       catchError(error => {
         console.warn('Salesforce Quote Details API failed. Falling back to local mock.', error);
         return of({

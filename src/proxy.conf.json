@@ -1,0 +1,8 @@
+{
+  "/services/data": {
+    "target": "https://vector--rcaagivant.sandbox.my.salesforce.com",
+    "secure": false,
+    "changeOrigin": true,
+    "logLevel": "debug"
+  }
+}

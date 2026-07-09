@@ -20,7 +20,7 @@ describe('ProductDiscoveryComponent (Angular & Tailwind)', () => {
   ];
 
   beforeEach(async () => {
-    mockCrmService = jasmine.createSpyObj('CrmService', ['getProducts', 'createQuote', 'getQuoteDetails']);
+    mockCrmService = jasmine.createSpyObj('CrmService', ['getProducts', 'facetedProductSearch', 'createQuote', 'getQuoteDetails']);
     mockRouter = jasmine.createSpyObj('Router', ['navigate']);
 
     // Mock sessionStorage
@@ -46,6 +46,17 @@ describe('ProductDiscoveryComponent (Angular & Tailwind)', () => {
 
   beforeEach(() => {
     mockCrmService.getProducts.and.returnValue(of(dummyProducts));
+    mockCrmService.facetedProductSearch.and.callFake((classificationId?: string, query?: string) => {
+      let result = [...dummyProducts];
+      if (classificationId) {
+        result = result.filter(p => p.family.toLowerCase() === classificationId.toLowerCase());
+      }
+      if (query && query.trim()) {
+        const q = query.toLowerCase().trim();
+        result = result.filter(p => p.name.toLowerCase().includes(q) || p.family.toLowerCase().includes(q));
+      }
+      return of(result);
+    });
     fixture = TestBed.createComponent(ProductDiscoveryComponent);
     component = fixture.componentInstance;
   });
