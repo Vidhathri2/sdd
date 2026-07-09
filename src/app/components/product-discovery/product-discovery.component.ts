@@ -16,7 +16,7 @@ export class ProductDiscoveryComponent implements OnInit {
   filteredProducts: Product[] = [];
   searchQuery: string = '';
   selectedFamily: string = '';
-  families: string[] = ['GCP', 'Workspace', 'Chrome', 'Maps', 'PSO'];
+  families: string[] = [];
   cart: Product[] = [];
   isCartOpen: boolean = false;
   isLoading: boolean = false;
@@ -35,7 +35,13 @@ export class ProductDiscoveryComponent implements OnInit {
     this.isLoading = true;
     this.crmService.getProducts().subscribe({
       next: (data) => {
-        this.products = data;
+        // Dynamically extract unique product families from the FULL response
+        this.families = Array.from(new Set(data.map(p => p.family).filter(f => !!f))).sort();
+
+        // Hardcode to display only these two products
+        const allowedProducts = ['Google Cloud Platform RCA', 'Looker New RCA'];
+        this.products = data.filter(p => allowedProducts.includes(p.name));
+        
         this.applyFilters();
         this.isLoading = false;
       },
@@ -63,23 +69,22 @@ export class ProductDiscoveryComponent implements OnInit {
   }
 
   applyFilters(): void {
-    // If no search/family filter is active, we can use the pre-fetched products list from API 5
-    if (!this.selectedFamily && !this.searchQuery.trim()) {
-      this.filteredProducts = [...this.products];
-      return;
+    let filtered = [...this.products];
+
+    if (this.selectedFamily) {
+      filtered = filtered.filter(p => p.family === this.selectedFamily);
     }
 
-    this.isLoading = true;
-    this.crmService.facetedProductSearch(this.selectedFamily, this.searchQuery).subscribe({
-      next: (data) => {
-        this.filteredProducts = data;
-        this.isLoading = false;
-      },
-      error: (err) => {
-        console.error('Failed to search products via API 6', err);
-        this.isLoading = false;
-      }
-    });
+    if (this.searchQuery.trim()) {
+      const q = this.searchQuery.toLowerCase().trim();
+      filtered = filtered.filter(p => 
+        p.name.toLowerCase().includes(q) || 
+        p.family.toLowerCase().includes(q) ||
+        (p.description && p.description.toLowerCase().includes(q))
+      );
+    }
+
+    this.filteredProducts = filtered;
   }
 
   addToCart(product: Product): void {
@@ -93,6 +98,14 @@ export class ProductDiscoveryComponent implements OnInit {
     this.cart = this.cart.filter(p => p.id !== productId);
     if (this.cart.length === 0) {
       this.isCartOpen = false;
+    }
+  }
+
+  toggleCart(product: Product): void {
+    if (this.isInCart(product.id)) {
+      this.removeFromCart(product.id);
+    } else {
+      this.addToCart(product);
     }
   }
 
@@ -121,27 +134,15 @@ export class ProductDiscoveryComponent implements OnInit {
     }
 
     this.isLoading = true;
-    const productIds = this.cart.map(p => p.id);
 
-    this.crmService.createQuote(oppId, productIds).subscribe({
+    this.crmService.createQuote(oppId, this.cart).subscribe({
       next: (quoteRes) => {
         if (quoteRes.success && quoteRes.salesTransactionId) {
-          this.crmService.getQuoteDetails(quoteRes.salesTransactionId).subscribe({
-            next: (details) => {
-              sessionStorage.setItem('createdQuoteId', details.Id);
-              sessionStorage.setItem('createdQuoteNumber', details.QuoteNumber);
-              this.isLoading = false;
-              this.router.navigate(['/quote-details']);
-            },
-            error: (err) => {
-              console.error('Failed to get quote details', err);
-              // Fallback routing even if details fails
-              sessionStorage.setItem('createdQuoteId', quoteRes.salesTransactionId);
-              sessionStorage.setItem('createdQuoteNumber', 'Q-000000');
-              this.isLoading = false;
-              this.router.navigate(['/quote-details']);
-            }
-          });
+          // Immediately redirect after successful quote creation without chaining getQuoteDetails
+          sessionStorage.setItem('createdQuoteId', quoteRes.salesTransactionId);
+          sessionStorage.setItem('createdQuoteNumber', 'Q-Pending');
+          this.isLoading = false;
+          this.router.navigate(['/quote-details']);
         } else {
           alert('Failed to place quote transaction.');
           this.isLoading = false;
