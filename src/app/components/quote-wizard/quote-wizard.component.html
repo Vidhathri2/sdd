@@ -1,0 +1,100 @@
+<div class="quote-wizard-container bg-[#f0f2f5] min-h-screen">
+  <header class="top-bar">
+    <div class="account-info">Cymbal / cymbal.com</div>
+    <div class="tabs">Quote 1</div>
+    <div class="actions">
+      <button class="btn-outline preview-btn">Preview approval</button>
+      <button class="btn-primary create-contract-btn bg-[#0f62fe]">Create contract</button>
+    </div>
+  </header>
+  
+  <div class="sub-header">
+    <div class="quote-title">
+      <h1>{{ quoteDetails?.quoteNumber || 'Q-____' }} {{ quoteDetails?.configuredProducts?.[0] || '' }}</h1>
+    </div>
+    <div class="quote-summary">
+      <span>Contract Start Date: Upon provisioning</span>
+      <span>Term: {{ quoteDetails?.termMonths || 0 }} months</span>
+      <span>Total Contract Value: <strong>$X,XXX,XXX</strong></span>
+    </div>
+  </div>
+
+  <div class="tabs-nav">
+    <button [class.active]="activeTab === 'details'" (click)="activeTab = 'details'">Details</button>
+    <button [class.active]="activeTab === 'plans'" (click)="activeTab = 'plans'">Plans & Discounts</button>
+  </div>
+
+  <div class="tab-content details-tab" [hidden]="activeTab !== 'details'">
+    <form [formGroup]="detailsForm">
+      <div class="form-section">
+        <h3>Quote Details</h3>
+        <input formControlName="primaryContact" placeholder="Primary Contact" />
+        <input formControlName="salesChannel" placeholder="Sales Channel" />
+        <select formControlName="operationType">
+          <option *ngFor="let opt of operationTypeOptions" [value]="opt">{{opt}}</option>
+        </select>
+        <input type="date" formControlName="quoteExpirationDate" />
+      </div>
+
+      <div class="form-section">
+        <h3>Subscription Details</h3>
+        <select formControlName="billingFrequency">
+          <option *ngFor="let opt of billingFrequencyOptions" [value]="opt">{{opt}}</option>
+        </select>
+        <select formControlName="termStartsOn">
+          <option *ngFor="let opt of termStartsOnOptions" [value]="opt">{{opt}}</option>
+        </select>
+        <input type="date" formControlName="termStartDate" (change)="onTermStartDateChange($any($event.target).value)" />
+        <input type="date" formControlName="termEndDate" />
+      </div>
+
+      <div class="payment-account-card border shadow-sm rounded">
+        <div class="header flex justify-between">
+          <h4>Payment Account</h4>
+        </div>
+        <span class="primary-badge bg-purple-100 text-purple-700">Primary</span>
+        <div class="account-details">
+          <div class="payment-account-name font-bold text-dark">{{ paymentAccount?.name }}</div>
+          <div class="billing-account-number">{{ paymentAccount?.billingAccount }}</div>
+          <div class="payment-account-id">{{ paymentAccount?.paymentAccountId }}</div>
+          <div class="billing-address">{{ paymentAccount?.billingAddress }}</div>
+          <div class="billing-currency">{{ paymentAccount?.billingCurrency }}</div>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <div class="tab-content plans-tab" [hidden]="activeTab !== 'plans'">
+    <div class="dates">
+      Subscription Start: {{ subscriptionStartDate }} | End: {{ subscriptionEndDate }}
+    </div>
+
+    <div *ngIf="periods.length === 0" class="empty-state-container bg-white border p-8 text-center">
+      <p>You can choose to create yearly or a custom period</p>
+      <button class="create-periods-btn btn-primary" (click)="openCreatePeriodsModal()">+ Create subscription periods</button>
+    </div>
+
+    <div *ngIf="periods.length > 0" class="periods-container">
+      <div *ngFor="let period of periods" class="period-card border mb-4 p-4">
+        <h4>{{ period.name }} ({{ period.startDate }} to {{ period.endDate }})</h4>
+      </div>
+      <button class="add-period-btn btn-outline" (click)="addPeriod()">Add Period</button>
+    </div>
+  </div>
+
+  <footer class="footer-actions flex justify-end p-4 border-t">
+    <button class="btn-outline">Cancel</button>
+    <button class="btn-outline">Save</button>
+    <button class="submit-btn btn-primary bg-[#0f62fe]" type="submit" [disabled]="isSubmitDisabled" (click)="submitQuote()">Submit</button>
+  </footer>
+
+  <!-- Modal for Creating Periods -->
+  <div class="modal-overlay fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center" *ngIf="showCreatePeriodsModal">
+    <div class="modal-content bg-white p-6 rounded shadow-lg">
+      <h3 class="mb-4">Create Periods</h3>
+      <button class="btn-primary mb-2" (click)="createPeriods('Yearly')">Yearly</button>
+      <button class="btn-primary" (click)="createPeriods('Custom')">Custom</button>
+      <button class="btn-outline mt-4" (click)="closeCreatePeriodsModal()">Cancel</button>
+    </div>
+  </div>
+</div>

@@ -9,7 +9,7 @@ This document provides a sequential, step-by-step description of all API endpoin
 
 *   **Salesforce Instance Base URL:** `https://vector--rcaagivant.sandbox.my.salesforce.com` (Decoupled and resolved via `ContextService`)
 *   **Common Headers:**
-    *   `Authorization: Bearer <accessToken>`
+    *   `Authorization: Bearer <accessToken>` (Note: For this MVP implementation, the access token is hardcoded and manually refreshed every 2 hours in `sessionStorage`, bypassing the OAuth flow).
     *   `Content-Type: application/json`
     *   `Accept: application/json`
 

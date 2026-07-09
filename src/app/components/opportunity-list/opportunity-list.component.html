@@ -1,9 +1,9 @@
-<div class="min-h-screen bg-[#f0f2f5] text-slate-700 font-sans p-6 md:p-8" (click)="closeMenu()">
+<div class="h-screen w-screen bg-[#f0f2f5] text-slate-700 font-sans flex flex-col p-4 md:p-6 overflow-hidden" (click)="closeMenu()">
   <!-- Main Wrapper -->
-  <div class="max-w-7xl mx-auto space-y-6">
+  <div class="flex-1 flex flex-col min-h-0 space-y-4">
 
     <!-- Top Navigation Bar / Header -->
-    <header class="flex items-center justify-between bg-[#f3f4f6] px-6 py-2.5 rounded-full border border-gray-200 shadow-sm gap-4">
+    <header class="flex items-center justify-between bg-[#f3f4f6] px-6 py-2.5 rounded-full border border-gray-200 shadow-sm gap-4 shrink-0">
       <!-- Left side: Hamburger and title -->
       <div class="flex items-center gap-3 text-gray-800">
         <button type="button" class="text-gray-500 hover:text-gray-850 focus:outline-none">
@@ -74,19 +74,19 @@
     </div>
 
     <!-- Opportunities Card Container -->
-    <div class="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
-      <div class="mb-5">
+    <div class="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 flex-1 flex flex-col min-h-0">
+      <div class="mb-5 shrink-0">
         <h2 class="text-xl font-bold text-gray-800">Opportunities</h2>
       </div>
 
       <!-- Loading State -->
-      <div *ngIf="isLoading && !fetchError" class="py-20 flex flex-col items-center justify-center gap-2">
+      <div *ngIf="isLoading && !fetchError" class="flex-1 flex flex-col items-center justify-center gap-2">
         <div class="w-7 h-7 border-2 border-gray-300 border-t-blue-500 rounded-full animate-spin"></div>
         <p class="text-gray-400 text-xs">Loading opportunities...</p>
       </div>
 
       <!-- Empty State -->
-      <div *ngIf="!isLoading && !fetchError && totalItems === 0" class="empty-state-message py-20 text-center flex flex-col items-center justify-center gap-3">
+      <div *ngIf="!isLoading && !fetchError && totalItems === 0" class="empty-state-message flex-1 text-center flex flex-col items-center justify-center gap-3">
         <div class="p-2.5 bg-gray-100 rounded-full text-gray-450 border border-gray-200">
           <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0a2 2 0 01-2 2H6a2 2 0 01-2-2m16 0V9a2 2 0 00-2-2H6a2 2 0 00-2 2v4.5m16 0L12 17l-8-4.5" />
@@ -96,7 +96,7 @@
       </div>
 
       <!-- Main Table -->
-      <div class="overflow-x-auto" *ngIf="!isLoading && !fetchError && totalItems > 0">
+      <div class="flex-1 overflow-y-auto overflow-x-auto min-h-0" *ngIf="!isLoading && !fetchError && totalItems > 0">
         <table class="w-full text-left border-collapse">
           <thead>
             <tr class="bg-white border-b border-gray-200 text-gray-500 text-xs font-semibold tracking-wider">
@@ -150,7 +150,7 @@
               </td>
               <!-- Amount -->
               <td class="py-3.5 px-4 text-gray-700">
-                {{ opp.amount | currency:'CAD':'symbol-narrow':'1.2-2' }} CAD
+                {{ opp.amount | currency:'CAD':'symbol-narrow':'1.2-2' }}
               </td>
               <!-- Close Date -->
               <td class="py-3.5 px-4 text-gray-500">
@@ -195,7 +195,7 @@
       <!-- Footer / Pagination Section (Right Aligned) -->
       <footer 
         *ngIf="!isLoading && !fetchError && totalItems > 0" 
-        class="flex items-center justify-end gap-6 mt-6 text-xs text-gray-500 font-medium"
+        class="flex items-center justify-end gap-6 mt-6 text-xs text-gray-500 font-medium shrink-0 pt-4 border-t border-gray-100"
       >
         <!-- Rows per page selector -->
         <div class="flex items-center gap-2">

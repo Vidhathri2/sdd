@@ -38,7 +38,6 @@ This feature delivers an integrated sales wizard ("Deal Studio") that enables sa
 
 **Constraints**:
 - Fully functional CRM Deal Studio wizard with three screen states in a single page flow
-- Defaults to CAD currency
 - Strict date validations (no gaps, overlaps, or invalid ranges)
 - Use of Tailwind CSS utility classes for layout, styling, and interactions (hover, active, disabled)
 

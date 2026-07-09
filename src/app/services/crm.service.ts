@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
 
@@ -90,7 +90,11 @@ export class CrmService {
         token = decodeURIComponent(cookieMatch[1]);
       }
     }
-    
+    if (!token) {
+      // Fallback to the development token if none is found
+      token = '00DDz000001qvYA!ARQAQOf2aMFhofxxln01NrriKnfp1yDkagfozpRcWw0.JMag9Kyy7ifG0roCiQ8iH8mB97dlAu9.It87BP33IfWkYlMEMQfU';
+    }
+
     const headers: { [header: string]: string } = {
       'Content-Type': 'application/json',
       'Accept': 'application/json'
@@ -282,7 +286,23 @@ export class CrmService {
           Name: 'Mock Quote Transaction',
           QuoteNumber: `Q-${Math.floor(100000 + Math.random() * 900000)}`,
           OpportunityId: 'mock-opp-id-123',
-          Pricebook2Id: '01sf4000003ZgtzAAC'
+          Pricebook2Id: '01sf4000003ZgtzAAC',
+          opportunityName: 'Opportunity Name 1',
+          primaryContact: 'Sarah Connor',
+          salesChannel: 'Direct',
+          configuredProducts: ['Looker Core'],
+          billingFrequency: 'Annual in Advance Anniversary',
+          termStartsOn: 'Fixed Start Date',
+          termStartDate: '2026-02-01',
+          termEndDate: '2029-01-31',
+          termMonths: 36,
+          paymentAccount: {
+            name: 'XXX XXXXXX',
+            billingAccount: 'XXXXXX-XXXXXX-XXXXXXX',
+            paymentAccountId: 'XXXXXX-XXXXXX-XXXXXXX',
+            billingAddress: '5920 Niagara River Parkway, Niagara Falls ON L2E 6X8 CA',
+            billingCurrency: 'CAD'
+          }
         });
       })
     );
@@ -328,5 +348,28 @@ export class CrmService {
       { id: 'prod-5', name: 'Looker Core', family: 'GCP', icon: 'GCP' },
       { id: 'prod-6', name: 'PSO Services', family: 'PSO', icon: 'PSO' }
     ];
+  }
+
+  getPicklists(): Observable<any> {
+    return of({
+      billingFrequencies: [
+        'Quarterly in Advance Anniversary',
+        'Annual in Advance Anniversary',
+        'Monthly in Arrears',
+        'Quarterly in Advance',
+        'Annual in Advance'
+      ],
+      termStartsOnOptions: [
+        'Fixed Start Date',
+        'Upon Provisioning',
+        'Customer Signature Date'
+      ],
+      operationTypes: ['New', 'Upsell', 'Renewal']
+    });
+  }
+
+  submitQuoteDetails(quoteId: string, payload: any): Observable<any> {
+    console.log('Submitting Quote Details:', quoteId, payload);
+    return of({ success: true });
   }
 }

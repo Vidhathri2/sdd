@@ -6,7 +6,7 @@
 
 ## 1. User Interface & Layout
 
-The Opportunity List is the entry page of the **Deal Studio** workspace, presenting a clean Salesforce-style light theme interface with a light grey background (`#f0f2f5`).
+The Opportunity List is the entry page of the **Deal Studio** workspace, presenting a clean Salesforce-style light theme interface with a light grey background (`#f0f2f5`) that occupies the entire viewport height and width (100vw and 100vh) without side margins, padding constraints, or max-width limits.
 
 ### UI Structure (Landing Page)
 - **Top Navigation Bar / Header**: 
