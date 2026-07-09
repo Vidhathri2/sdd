@@ -7,52 +7,29 @@ This document provides a sequential, step-by-step description of all API endpoin
 
 ## Global API Configuration
 
-*   **Salesforce Instance Base URL:** `https://vector--rcaagivant.sandbox.my.salesforce.com` (Decoupled and resolved via `ContextService`)
+*   **Salesforce Instance Base URL:** `https://vector--agivant2.sandbox.my.salesforce.com` (Decoupled and resolved via `ContextService` / Local Token Relay)
 *   **Common Headers:**
-    *   `Authorization: Bearer <accessToken>` (Note: For this MVP implementation, the access token is hardcoded and manually refreshed every 2 hours in `sessionStorage`, bypassing the OAuth flow).
+    *   `Authorization: Bearer <accessToken>`
     *   `Content-Type: application/json`
     *   `Accept: application/json`
 
 ---
 
-## 🔑 Authentication Sequence (OAuth 2.0 PKCE)
+## 🔑 Authentication Sequence (Local Token Relay Service)
 
-Executed when the browser checks context state and finds no active session token.
+Executed during application startup to obtain dynamic active credentials from the local server.
 
-### 1. Request Authorization Code (Redirect)
-*   **Endpoint:** `GET /services/oauth2/authorize`
-*   **Service Method:** `TwAuthService.login`
-*   **Description:** Redirects the user to log in and obtain an authorization code.
-*   **Query Parameters:**
-    *   `response_type=code`
-    *   `client_id=<Client_Id>`
-    *   `redirect_uri=<Callback_Url>`
-    *   `code_challenge=<Code_Challenge_Base64>`
-    *   `code_challenge_method=S256`
-*   **Payload:** None (Browser redirect query parameters)
-*   **Sample Response:** Redirection to `<Callback_Url>?code=aPr0000000...`
-
-### 2. Token Exchange (POST)
-*   **Endpoint:** `POST /services/oauth2/token`
-*   **Service Method:** `TwAuthService.handleCallback`
-*   **Description:** Exchanges the authorization code for an access token using PKCE verifier.
-*   **Payload (URL-Encoded Form):**
-    ```
-    grant_type=authorization_code
-    &client_id=<Client_Id>
-    &code_verifier=<Code_Verifier_Plaintext>
-    &code=<Authorization_Code>
-    &redirect_uri=<Callback_Url>
-    ```
+### 1. Retrieve Active Salesforce Access Token (GET)
+*   **Endpoint:** `GET http://localhost:3000/api/access-token`
+*   **Service Method:** `ContextService.initContext`
+*   **Description:** Requests the latest Salesforce authorization token and target environment instance URL from the local Node.js authentication helper application.
+*   **Payload:** None
 *   **Sample Response (JSON):**
     ```json
     {
-      "access_token": "00DDz000000XXXX!ARsAQ...",
-      "instance_url": "https://vector--rcaagivant.sandbox.my.salesforce.com",
-      "id": "https://login.salesforce.com/id/00DDz000000XXXX/005Dz00000XXXXX",
-      "token_type": "Bearer",
-      "issued_at": "1793740000000",
-      "signature": "XXXXX"
+      "success": true,
+      "accessToken": "00DDx000000H0YK!ARYAQIIhYSE0z0IppUUpNlJ6.m.yrkRtx4JcPJeD_uWzQXidTLGBWqkoi075pNIYbJinTyEdEM_nb9gzgF1..YRdRsx4yKjS",
+      "instanceUrl": "https://vector--agivant2.sandbox.my.salesforce.com"
     }
     ```
 
