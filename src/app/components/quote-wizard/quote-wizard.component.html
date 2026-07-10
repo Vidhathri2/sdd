@@ -53,8 +53,8 @@
       <!-- Quote Summary Row -->
       <div class="quote-summary-row px-6 py-2.5 flex justify-between items-center border-b border-gray-100">
         <div class="quote-title-block">
-          <div class="quote-number text-[10px] text-gray-400 leading-none">{{ quoteDetails?.QuoteNumber || 'Q-1234' }}</div>
-          <div class="quote-name text-lg font-bold text-gray-800 mt-0.5">{{ quoteDetails?.configuredProducts?.[0] || 'Looker Core' }}</div>
+          <div class="quote-number text-[10px] text-gray-400 leading-none">Q - {{ quoteDetails?.QuoteNumber }}</div>
+          <div class="quote-name text-lg font-bold text-gray-800 mt-0.5">{{ quoteDetails?.configuredProducts?.[0] }}</div>
         </div>
 
         <div class="quote-meta flex items-center space-x-6 text-right">

@@ -93,7 +93,7 @@ export class CrmService {
     }
     if (!token) {
       // Fallback to the development token if none is found
-      token = '00DDz000001qvYA!ARQAQOf2aMFhofxxln01NrriKnfp1yDkagfozpRcWw0.JMag9Kyy7ifG0roCiQ8iH8mB97dlAu9.It87BP33IfWkYlMEMQfU';
+      token = '00DDz000001qvYA!ARQAQBOo6KydDiL8plaeuWedI5_7MJRVUJDSxTZ20IRM6dJcIKfWEX52KowQV2Qi8x3g4HgYKk1s9fO_TL0c3U6RRASeLcal';
     }
 
     const headers: { [header: string]: string } = {
@@ -392,21 +392,42 @@ export class CrmService {
   }
 
   getPicklists(): Observable<any> {
-    return of({
-      billingFrequencies: [
-        'Quarterly in Advance Anniversary',
-        'Annual in Advance Anniversary',
-        'Monthly in Arrears',
-        'Quarterly in Advance',
-        'Annual in Advance'
-      ],
-      termStartsOnOptions: [
-        'Fixed Start Date',
-        'Upon Provisioning',
-        'Customer Signature Date'
-      ],
-      operationTypes: ['New', 'Upsell', 'Renewal']
-    });
+    const url = `${this.baseUrl}/services/data/v65.0/ui-api/object-info/Quote/picklist-values/012000000000000AAA`;
+    
+    return this.http.get<any>(url, { headers: this.getHeaders() }).pipe(
+      map(response => {
+        const picklistFieldValues = response.picklistFieldValues || {};
+        
+        const extractValues = (fieldName: string) => {
+          const field = picklistFieldValues[fieldName];
+          return field?.values ? field.values.map((v: any) => v.value) : null;
+        };
+
+        return {
+          billingFrequencies: extractValues('Billing_Frequency__c') ,
+          termStartsOnOptions: extractValues('Term_Starts_On__c') ,
+          operationTypes: extractValues('Operation_Type__c')
+        };
+      }),
+      catchError(error => {
+        console.warn('Salesforce Picklists API failed. Falling back to local mock.', error);
+        return of({
+          billingFrequencies: [
+            'Quarterly in Advance Anniversary',
+            'Annual in Advance Anniversary',
+            'Monthly in Arrears',
+            'Quarterly in Advance',
+            'Annual in Advance'
+          ],
+          termStartsOnOptions: [
+            'Fixed Start Date',
+            'Upon Provisioning',
+            'Customer Signature Date'
+          ],
+          operationTypes: ['New', 'Upsell', 'Renewal']
+        });
+      })
+    );
   }
 
   submitQuoteDetails(quoteId: string, payload: any): Observable<any> {
