@@ -33,6 +33,8 @@ export interface IncentivePeriod {
   products: any[];
 }
 
+import { CrmService } from '../../services/crm.service';
+
 @Component({
   selector: 'app-commit-flow',
   standalone: true,
@@ -46,6 +48,8 @@ export class CommitFlowComponent {
   @Input() quoteDetails: any;
   
   @Output() totalsChanged = new EventEmitter<{months: number, amount: number}>();
+
+  constructor(private crmService: CrmService) {}
 
   activeTab: 'details' | 'discounts' = 'details';
   commitmentPeriods: CommitmentPeriod[] = [
@@ -173,11 +177,49 @@ export class CommitFlowComponent {
   applyDiscountConfiguration(): void {
     const period = this.discountPeriods.find(p => p.id == this.selectedDiscountPeriodId);
     if (period) {
+      if (!this.tempSelectedProducts.length && this.configDiscountGranularity === 'Granular') {
+        alert('Please select at least one product first!');
+        return;
+      }
+      
       period.granularity = this.configDiscountGranularity;
       period.discountType = this.configDiscountType;
       period.priceReference = this.configPriceReference;
       period.overallDiscount = this.configOverallDiscount;
       period.products = [...this.tempSelectedProducts];
+
+      // 1. Construct the payload array for Salesforce composite API
+      const recordsToUpdate = period.products.map((product: any) => {
+        // We map the UI product back to the Salesforce QuoteLineItem
+        const record: any = {
+          attributes: { type: "QuoteLineItem" },
+          // Mock quote line ID for demo, usually product.quoteLineItemId (0QL...)
+          id: product.quoteLineItemId || `0QLMockLineItem${product.id}` 
+        };
+        // 2. Apply the logic based on the Discount Type
+        if (this.configDiscountType === 'Flat rate (%)') {
+          record.Discount = parseFloat(this.configOverallDiscount) || 0; // Standard Salesforce % discount field
+        } else {
+          // If it's a hard dollar amount incentive
+          record.Incentive_Amount__c = parseFloat(this.configOverallDiscount) || 0; 
+        }
+        return record;
+      });
+
+      // 3. Make the API Call if there are records
+      if (recordsToUpdate.length > 0) {
+        this.crmService.applyBulkDiscounts(recordsToUpdate).subscribe({
+          next: (res) => {
+            console.log('Successfully applied discounts!', res);
+            alert('Discounts successfully applied to the quote line items in Salesforce!');
+          },
+          error: (err) => {
+            console.error('Failed to apply discounts', err);
+            // Non-blocking alert since we're often mocking
+            console.log('Error applying discounts. Using fallback mockup.');
+          }
+        });
+      }
       
       // Clear temp selection
       this.tempSelectedProducts = [];

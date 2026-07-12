@@ -502,6 +502,29 @@ Executed sequentially when "Create Contract" or "Submit" is triggered.
     }
     ```
 
+### 16. Apply Selected Discounts / Incentives (PATCH)
+*   **Endpoint:** `PATCH /services/data/v65.0/composite/sobjects`
+*   **Service Method:** `CrmService.updateQuoteLineDiscounts`
+*   **Description:** Executes a bulk patch update on the corresponding `QuoteLineItem` records to apply the UI-configured `Discount` (%) or `Incentive__c` ($) values.
+*   **Payload Example (Granular Discount):**
+    ```json
+    {
+      "allOrNone": true,
+      "records": [
+        {
+          "attributes": { "type": "QuoteLineItem" },
+          "id": "0QLDz00000BundleLineId1",
+          "Discount": 45.0
+        },
+        {
+          "attributes": { "type": "QuoteLineItem" },
+          "id": "0QLDz00000BundleLineId2",
+          "Discount": 20.0
+        }
+      ]
+    }
+    ```
+
 ---
 
 ## 🛠️ Sequence 5: Active Helper & Ancillary APIs

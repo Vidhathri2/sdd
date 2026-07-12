@@ -42,6 +42,7 @@ export class QuoteWizardComponent implements OnInit {
   sessionAccountName: string = '';
   sessionOpportunityName: string = '';
   sessionConfiguredProduct: string = '';
+  currentQuoteId: string = '';
 
   constructor(
     private fb: FormBuilder,
@@ -93,6 +94,7 @@ export class QuoteWizardComponent implements OnInit {
 
     const quoteId = sessionStorage.getItem('selectedQuoteId');
     if (quoteId) {
+      this.currentQuoteId = quoteId;
       this.crmService.getQuoteDetails(quoteId).subscribe(details => {
         this.quoteDetails = details;
         this.paymentAccount = details.paymentAccount;
@@ -109,7 +111,7 @@ export class QuoteWizardComponent implements OnInit {
         const expStr = expDate.toISOString().split('T')[0];
 
         this.detailsForm.patchValue({
-          primaryContact: details.primaryContact || '',
+          primaryContact: details.primaryContact || sessionStorage.getItem('selectedPrimaryContact') || '',
           salesChannel: details.salesChannel || 'Direct',
           operationType: 'New',
           quoteExpirationDate: expStr,
@@ -343,5 +345,12 @@ export class QuoteWizardComponent implements OnInit {
     // Collapse all other periods to prevent overflow
     this.periods.forEach(p => p.expanded = false);
     period.expanded = targetState;
+  }
+
+  viewInSalesforce(): void {
+    if (!this.currentQuoteId) return;
+    const salesforceDomain = 'https://vector--agivant2.sandbox.lightning.force.com';
+    const url = `${salesforceDomain}/lightning/r/Quote/${this.currentQuoteId}/view`;
+    window.open(url, '_blank');
   }
 }

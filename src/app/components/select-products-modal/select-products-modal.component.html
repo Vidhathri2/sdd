@@ -7,8 +7,8 @@
 
     <div class="modal-nav">
       <div class="modal-tabs">
-        <button class="modal-tab active">Product Groups <span class="count-badge blue">{{ products.length }}</span></button>
-        <button class="modal-tab">Individual Products <span class="count-badge">0</span></button>
+        <button class="modal-tab" [class.active]="activeTab === 'Groups'" (click)="activeTab = 'Groups'">Product Groups <span class="count-badge" [class.blue]="activeTab === 'Groups'">{{ groupProducts.length }}</span></button>
+        <button class="modal-tab" [class.active]="activeTab === 'Individuals'" (click)="activeTab = 'Individuals'">Individual Products <span class="count-badge" [class.blue]="activeTab === 'Individuals'">{{ individualProducts.length }}</span></button>
       </div>
       <button class="upload-btn" (click)="upload.emit()">
         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="upload-icon"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
@@ -16,12 +16,49 @@
       </button>
     </div>
 
-    <div class="modal-filters">
-      <button class="filter-btn" [class.active]="filter === 'All'" (click)="filter = 'All'">Show All</button>
-      <button class="filter-btn" [class.active]="filter === 'Selected'" (click)="filter = 'Selected'">Show selected ({{ selectedCount }})</button>
+    <!-- Groups Tab Layout -->
+    <ng-container *ngIf="activeTab === 'Groups'">
+      <div class="modal-filters">
+        <div class="filter-actions">
+          <button class="filter-btn" [class.active]="filter === 'All'" (click)="filter = 'All'">Show All</button>
+          <button class="filter-btn" [class.active]="filter === 'Selected'" (click)="filter = 'Selected'">Show selected ({{ selectedCount }})</button>
+        </div>
+      </div>
+      <div class="modal-body overflow-y-auto">
+        <ng-container *ngTemplateOutlet="productsTableTpl"></ng-container>
+      </div>
+    </ng-container>
+
+    <!-- Individuals Tab (Horizontal Ribbon Layout) -->
+    <div class="horizontal-search-layout" *ngIf="activeTab === 'Individuals'">
+      
+      <!-- Horizontal Product Groups Ribbon -->
+      <div class="product-group-ribbon">
+        <!-- Dynamic chips generated from Product Groups -->
+        <button *ngFor="let group of groupProducts" 
+                class="group-ribbon-item" 
+                [class.active]="activeGroupId === group.id"
+                (click)="selectGroupFacet(group.id)"
+                [title]="group.name">
+          {{ group.name }}
+        </button>
+      </div>
+
+      <!-- Main Results Area -->
+      <div class="search-results-area-full">
+        <div class="search-bar-container-horizontal">
+          <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+          <input type="text" class="global-search-input" placeholder="Search by SKU, Name, or description..." [ngModel]="searchTerm" (ngModelChange)="onSearchChange($event)">
+        </div>
+        
+        <div class="products-table-wrapper-full">
+           <ng-container *ngTemplateOutlet="productsTableTpl"></ng-container>
+        </div>
+      </div>
     </div>
 
-    <div class="modal-body overflow-y-auto">
+    <!-- Reusable Table Template -->
+    <ng-template #productsTableTpl>
       <table class="products-table">
         <thead>
           <tr>
@@ -62,7 +99,7 @@
           </tr>
         </tbody>
       </table>
-    </div>
+    </ng-template>
 
     <div class="modal-footer">
       <div class="products-remaining-text">

@@ -20,6 +20,7 @@ export interface Product {
   icon: string;
   description?: string;
   pricebookEntryId?: string;
+  classificationId?: string;
 }
 
 export interface QuoteResponse {
@@ -93,7 +94,7 @@ export class CrmService {
     }
     if (!token) {
       // Fallback to the development token if none is found
-      token = '00DDz000001qvYA!ARQAQBOo6KydDiL8plaeuWedI5_7MJRVUJDSxTZ20IRM6dJcIKfWEX52KowQV2Qi8x3g4HgYKk1s9fO_TL0c3U6RRASeLcal';
+      token = '00DDz000001qvYA!ARQAQNHhPDIvCDRttwCONZZTwQuLmSMOP37Vjret0za_2CEJETgjhJ9dT_A2X6455AcLL0sHsnV4JmwO_xUV6RqDb.UWeQ04';
     }
 
     const headers: { [header: string]: string } = {
@@ -159,7 +160,8 @@ export class CrmService {
           family: familyVal,
           icon: familyVal,
           description: p.description || '',
-          pricebookEntryId: pbeId
+          pricebookEntryId: pbeId,
+          classificationId: p.productClassification?.id
         };
       })),
       catchError(error => {
@@ -170,17 +172,16 @@ export class CrmService {
   }
 
   facetedProductSearch(classificationId?: string, query?: string): Observable<Product[]> {
-    const params: string[] = [];
+    const params: string[] = ['include=/products'];
     if (classificationId) {
       params.push(`productClassificationId=${encodeURIComponent(classificationId)}`);
     }
     if (query && query.trim()) {
       params.push(`q=${encodeURIComponent(query.trim())}`);
     }
-    params.push('include=/products');
-
     const url = `${this.baseUrl}/services/data/v66.0/connect/pcm/products?${params.join('&')}`;
-    const payload = {
+    
+    const payload: any = {
       language: 'en_US',
       filter: {
         criteria: [
@@ -203,20 +204,46 @@ export class CrmService {
         };
       })),
       catchError(error => {
-        console.warn('Salesforce Faceted Search API failed. Falling back to local products list filtering.', error);
-        // Fallback: filter local mock products
+        console.warn('Salesforce Faceted Search API failed. Falling back to local mock data.', error);
         let mockProducts = this.getMockProducts();
+        // Since we are mocking classificationId with activeGroupId conceptually, filter it gracefully
         if (classificationId) {
-          mockProducts = mockProducts.filter(p => p.family.toLowerCase() === classificationId.toLowerCase());
+          mockProducts = mockProducts.filter(p => p.id === classificationId || p.family.toLowerCase() === classificationId.toLowerCase());
         }
         if (query && query.trim()) {
           const q = query.toLowerCase().trim();
-          mockProducts = mockProducts.filter(p =>
-            p.name.toLowerCase().includes(q) ||
-            p.family.toLowerCase().includes(q)
-          );
+          mockProducts = mockProducts.filter(p => p.name.toLowerCase().includes(q) || p.family.toLowerCase().includes(q));
         }
         return of(mockProducts);
+      })
+    );
+  }
+
+  globalSearchProducts(searchTerm: string, criteria: any[] = [], pageSize: number = 100, offset: number = 0): Observable<Product[]> {
+    const url = `${this.baseUrl}/services/data/v65.0/connect/pcm/products?include=/products`;
+    const finalCriteria = [ { property: 'isActive', operator: 'eq', value: true }, ...criteria ];
+    
+    const payload = {
+      searchTerm: searchTerm,
+      pageSize: pageSize,
+      offset: offset,
+      filter: { criteria: finalCriteria }
+    };
+
+    return this.http.post<{ products: any[] }>(url, payload, { headers: this.getHeaders() }).pipe(
+      map(response => (response.products || []).map(p => {
+        const familyVal = p.family || p.additionalFields?.Family || p.categories?.[0]?.name || p.fields?.Product2?.Family || p.fields?.Family || 'Other';
+        return {
+          id: p.id || p.productId || '',
+          name: p.name || p.additionalFields?.Name || '',
+          family: familyVal,
+          icon: familyVal,
+          description: p.description || ''
+        };
+      })),
+      catchError(error => {
+        console.warn('Salesforce Global Search API failed.', error);
+        return of([]);
       })
     );
   }
@@ -433,5 +460,25 @@ export class CrmService {
   submitQuoteDetails(quoteId: string, payload: any): Observable<any> {
     console.log('Submitting Quote Details:', quoteId, payload);
     return of({ success: true });
+  }
+
+  updateQuoteLineDiscounts(payload: any): Observable<any> {
+    const url = `${this.baseUrl}/services/data/v65.0/composite/sobjects`;
+    return this.http.patch<any>(url, payload, { headers: this.getHeaders() }).pipe(
+      catchError(error => {
+        console.warn('Salesforce updateQuoteLineDiscounts API failed. Falling back to mock success.', error);
+        return of({ success: true, mocked: true });
+      })
+    );
+  }
+
+  // Executes a bulk PATCH to update multiple Quote Line Items at once
+  applyBulkDiscounts(records: any[]): Observable<any> {
+    const url = `${this.baseUrl}/services/data/v65.0/composite/sobjects`;
+    const payload = {
+      allOrNone: true,
+      records: records
+    };
+    return this.http.patch(url, payload, { headers: this.getHeaders() });
   }
 }
