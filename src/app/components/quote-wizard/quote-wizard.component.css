@@ -76,9 +76,7 @@ select::-ms-expand {
   background-color: #1d4ed8;
 }
 
-.empty-state-container {
-  border: 2px dashed #e2e8f0;
-}
+
 
 .modal-content {
   animation: slideUp 0.2s cubic-bezier(0.16, 1, 0.3, 1);

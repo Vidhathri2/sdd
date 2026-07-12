@@ -31,6 +31,7 @@ export class QuoteWizardComponent implements OnInit {
   customMonthsPerPeriod: number = 12;
 
   activeTab: 'details' | 'plans' = 'details';
+  todayStr: string = '';
 
   constructor(
     private fb: FormBuilder,
@@ -39,6 +40,7 @@ export class QuoteWizardComponent implements OnInit {
     private router: Router
   ) {
     const today = new Date();
+    this.todayStr = today.toISOString().split('T')[0];
     
     // Expiration date (45 days from now)
     const expDate = new Date(today);
@@ -170,15 +172,28 @@ export class QuoteWizardComponent implements OnInit {
 
   createPeriods(mode: string): void {
     this.generationMode = mode;
+    
+    // Fallback to today's date if start date is empty/invalid
+    const start = this.subscriptionStartDate || this.todayStr;
+    let end = this.subscriptionEndDate;
+    
+    if (!end) {
+      // Default term to 3 years from start date if end date is empty
+      const d = new Date(start);
+      d.setFullYear(d.getFullYear() + 3);
+      d.setDate(d.getDate() - 1);
+      end = d.toISOString().split('T')[0];
+    }
+
+    // Sync state and form controls
+    this.updateSubscriptionDates(start, end);
+
     if (mode === 'Yearly') {
-      this.periods = this.periodService.generateYearlyPeriods(
-        this.subscriptionStartDate, 
-        this.subscriptionEndDate
-      );
+      this.periods = this.periodService.generateYearlyPeriods(start, end);
     } else {
       this.periods = this.periodService.generateCustomPeriods(
-        this.subscriptionStartDate,
-        this.subscriptionEndDate,
+        start,
+        end,
         this.customMonthsPerPeriod
       );
     }

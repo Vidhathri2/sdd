@@ -39,7 +39,7 @@ export class ProductDiscoveryComponent implements OnInit {
         this.families = Array.from(new Set(data.map(p => p.family).filter(f => !!f))).sort();
 
         // Hardcode to display only these two products
-        const allowedProducts = ['Google Cloud Platform RCA', 'Looker New RCA'];
+        const allowedProducts = ['Google Cloud Platform RCA', 'Looker New RCA', 'Google Cloud Platform', 'Looker Core'];
         this.products = data.filter(p => allowedProducts.includes(p.name));
         
         this.applyFilters();
