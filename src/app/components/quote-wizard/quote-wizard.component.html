@@ -51,10 +51,10 @@
       </div>
 
       <!-- Quote Summary Row -->
-      <div class="quote-summary-row px-6 py-2.5 flex justify-between items-center border-b border-gray-100">
+      <div class="quote-summary-row px-6 py-2.5 flex justify-between items-center">
         <div class="quote-title-block">
           <div class="quote-number text-[10px] text-gray-400 leading-none">{{ quoteDetails?.QuoteNumber || 'Q-1234' }}</div>
-          <div class="quote-name text-lg font-bold text-gray-800 mt-0.5">{{ sessionConfiguredProduct || quoteDetails?.configuredProducts?.[0] || 'Google Cloud Platform' }}</div>
+          <div class="quote-name text-lg font-bold text-gray-800 mt-0.5">{{ sessionConfiguredProduct || quoteDetails?.configuredProducts?.[0] }}</div>
         </div>
 
         <div class="quote-meta flex items-center space-x-6 text-right">
@@ -99,7 +99,7 @@
             Details
           </button>
           <button [class.active]="activeTab === 'plans'" class="tab-btn py-2 text-xs font-semibold border-b-2 border-transparent transition" (click)="activeTab = 'plans'">
-            Products & Discounts
+            Plans & Discounts
           </button>
         </nav>
 
@@ -206,7 +206,7 @@
                 <div class="field-group border border-gray-200 rounded-lg p-2 bg-white flex items-center hover:border-gray-300 transition-colors focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500 relative" [class.bg-gray-100]="detailsForm.get('termStartDate')?.disabled">
                   <div class="flex flex-col flex-1 min-w-0">
                     <span class="text-[9px] text-gray-400 font-bold uppercase tracking-wider leading-none">Term Start Date</span>
-                    <input type="date" formControlName="termStartDate" (change)="onTermStartDateChange($any($event.target).value)" class="outline-none text-xs font-semibold text-gray-700 bg-transparent mt-0.5 w-full p-0 border-none relative z-10" />
+                    <input type="date" formControlName="termStartDate" [min]="todayStr" (change)="onTermStartDateChange($any($event.target).value)" class="outline-none text-xs font-semibold text-gray-700 bg-transparent mt-0.5 w-full p-0 border-none relative z-10" />
                   </div>
                   <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-gray-400 absolute right-2 bottom-2.5 pointer-events-none">
                     <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
@@ -287,15 +287,15 @@
             
             <div class="date-field flex flex-col">
               <label class="text-[9px] text-gray-400 uppercase font-bold tracking-wider mb-0.5">Subscription Start Date</label>
-              <div class="input-wrapper flex items-center border border-gray-300 rounded-lg px-2.5 py-1 bg-white focus-within:border-blue-600 transition shadow-sm w-[150px]">
-                <input type="date" [value]="subscriptionStartDate" (change)="onSubscriptionStartDateChange($any($event.target).value)" class="flex-1 outline-none text-xs text-gray-600 bg-transparent" />
+              <div class="input-wrapper relative flex items-center border border-gray-300 rounded-lg px-2.5 py-1 bg-white focus-within:border-blue-600 transition shadow-sm w-[150px]">
+                <input type="date" [(ngModel)]="subscriptionStartDate" [min]="todayStr" (change)="onSubscriptionStartDateChange(subscriptionStartDate)" class="flex-1 outline-none text-xs text-gray-600 bg-transparent" />
               </div>
             </div>
 
             <div class="date-field flex flex-col">
               <label class="text-[9px] text-gray-400 uppercase font-bold tracking-wider mb-0.5">Subscription End Date</label>
-              <div class="input-wrapper flex items-center border border-gray-300 rounded-lg px-2.5 py-1 bg-white focus-within:border-blue-600 transition shadow-sm w-[150px]">
-                <input type="date" [value]="subscriptionEndDate" (change)="onSubscriptionEndDateChange($any($event.target).value)" class="flex-1 outline-none text-xs text-gray-600 bg-transparent" />
+              <div class="input-wrapper relative flex items-center border border-gray-300 rounded-lg px-2.5 py-1 bg-white focus-within:border-blue-600 transition shadow-sm w-[150px]">
+                <input type="date" [(ngModel)]="subscriptionEndDate" (change)="onSubscriptionEndDateChange(subscriptionEndDate)" class="flex-1 outline-none text-xs text-gray-600 bg-transparent" />
               </div>
             </div>
 
@@ -303,11 +303,11 @@
         </div>
 
         <!-- Empty State -->
-        <div *ngIf="periods.length === 0" class="empty-state-container bg-white border border-gray-200/80 rounded-xl p-6 text-center shadow-sm flex flex-col items-center justify-center space-y-2">
-          <button class="create-periods-btn px-4 py-2 bg-blue-600 hover:bg-blue-700 transition rounded-lg text-xs font-semibold text-white shadow-sm" (click)="openCreatePeriodsModal()">
-            + Create subscription periods
+        <div *ngIf="periods.length === 0" class="empty-state-container bg-[#f8fafc] border border-gray-200 rounded-xl py-24 px-6 text-center flex flex-col items-center justify-center space-y-3.5 shadow-sm">
+          <button class="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 transition rounded-lg text-xs font-semibold text-white shadow-md flex items-center gap-1.5" (click)="openCreatePeriodsModal()">
+            + Create subscription plans
           </button>
-          <p class="text-xs text-gray-400">You can choose to create yearly or a custom period</p>
+          <p class="text-xs text-gray-400 font-medium">You can choose to create yearly plans or for a custom period</p>
         </div>
 
         <!-- Periods Ramp Configured List -->
@@ -482,28 +482,38 @@
 
   <!-- Modal for Creating Periods -->
   <div class="modal-overlay fixed inset-0 bg-black/40 backdrop-blur-[2px] flex items-center justify-center z-50" *ngIf="showCreatePeriodsModal">
-    <div class="modal-content bg-white p-6 rounded-xl shadow-xl w-full max-w-[420px] border border-gray-100">
-      <h3 class="text-lg font-bold text-gray-800 mb-2">Create Subscription Periods</h3>
-      <p class="text-sm text-gray-400 mb-6 leading-relaxed">Choose the frequency at which you want to ramp up your subscription.</p>
+    <div class="modal-content bg-white p-6 rounded-2xl shadow-2xl w-full max-w-[380px] border border-gray-150">
+      <h3 class="text-base font-bold text-gray-800 mb-1">Create Subscription Periods</h3>
+      <p class="text-xs text-gray-400 mb-5 leading-relaxed">Choose the frequency at which you want to ramp up your subscription.</p>
       
-      <div class="modal-options flex flex-col space-y-3">
-        <button class="px-4 py-3 bg-blue-50 text-blue-700 hover:bg-blue-100 rounded-lg font-semibold text-sm transition text-left flex justify-between items-center" (click)="createPeriods('Yearly')">
-          Yearly (12 Months / Period)
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <polyline points="9 18 15 12 9 6"></polyline>
-          </svg>
-        </button>
-        <button class="px-4 py-3 bg-gray-50 text-gray-700 hover:bg-gray-100 rounded-lg font-semibold text-sm transition text-left flex justify-between items-center" (click)="createPeriods('Custom')">
-          Custom Duration
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <polyline points="9 18 15 12 9 6"></polyline>
-          </svg>
-        </button>
+      <!-- Dropdown Select -->
+      <div class="frequency-select-container border border-gray-200 rounded-lg p-2.5 bg-white relative flex items-center mb-6 focus-within:border-blue-650 transition">
+        <div class="flex flex-col flex-1 min-w-0">
+          <label class="text-[10px] text-gray-450 font-bold uppercase tracking-wider mb-0.5">Frequency</label>
+          <select [(ngModel)]="generationMode" class="outline-none text-xs font-semibold text-gray-700 bg-transparent w-full p-0 border-none appearance-none cursor-pointer pr-6">
+            <option value="Yearly">Yearly</option>
+            <option value="Custom">Custom</option>
+          </select>
+        </div>
+        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-gray-400 absolute right-3 pointer-events-none">
+          <polyline points="6 9 12 15 18 9"></polyline>
+        </svg>
+      </div>
+
+      <!-- If Custom is selected, show months input -->
+      <div class="frequency-select-container border border-gray-200 rounded-lg p-2.5 bg-white relative flex items-center mb-6 focus-within:border-blue-650 transition" *ngIf="generationMode === 'Custom'">
+        <div class="flex flex-col flex-1 min-w-0">
+          <label class="text-[10px] text-gray-450 font-bold uppercase tracking-wider mb-0.5">Custom Months Per Period</label>
+          <input type="number" [(ngModel)]="customMonthsPerPeriod" min="1" class="outline-none text-xs font-semibold text-gray-700 bg-transparent w-full p-0 border-none" />
+        </div>
       </div>
       
-      <div class="flex justify-end mt-8">
-        <button class="px-4 py-2 text-sm font-semibold text-gray-500 hover:text-gray-800 transition" (click)="closeCreatePeriodsModal()">
+      <div class="flex justify-end space-x-6 mt-4">
+        <button class="text-xs font-bold text-blue-600 hover:text-blue-700 transition" (click)="closeCreatePeriodsModal()">
           Cancel
+        </button>
+        <button class="text-xs font-bold text-blue-600 hover:text-blue-700 transition" (click)="createPeriods(generationMode)">
+          Create
         </button>
       </div>
     </div>

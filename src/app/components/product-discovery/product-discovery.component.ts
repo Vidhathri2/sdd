@@ -38,8 +38,9 @@ export class ProductDiscoveryComponent implements OnInit {
         // Dynamically extract unique product families from the FULL response
         this.families = Array.from(new Set(data.map(p => p.family).filter(f => !!f))).sort();
 
-        // Display all products
-        this.products = data;
+        // Hardcode to display only these two products
+        const allowedProducts = ['Google Cloud Platform RCA', 'Looker New RCA', 'Google Cloud Platform', 'Looker Core'];
+        this.products = data.filter(p => allowedProducts.includes(p.name));
         
         this.applyFilters();
         this.isLoading = false;
