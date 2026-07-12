@@ -34,13 +34,13 @@ export interface QuoteResponse {
 export class CrmService {
   private baseUrl = '';
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
   private getHeaders(): { [header: string]: string } {
     // 1. Check URL parameters first
     const urlParams = new URLSearchParams(window.location.search);
     let token = urlParams.get('accessToken') || urlParams.get('access_token') || urlParams.get('token') || urlParams.get('session_id') || urlParams.get('sid');
-    
+
     if (token) {
       sessionStorage.setItem('accessToken', token);
       const newUrl = window.location.pathname + window.location.hash;
@@ -81,7 +81,7 @@ export class CrmService {
             }
           }
         }
-      } catch (e) {}
+      } catch (e) { }
     }
 
     // 4. Check cookies
@@ -93,7 +93,7 @@ export class CrmService {
     }
     if (!token) {
       // Fallback to the development token if none is found
-      token = '00DDz000001qvYA!ARQAQOf2aMFhofxxln01NrriKnfp1yDkagfozpRcWw0.JMag9Kyy7ifG0roCiQ8iH8mB97dlAu9.It87BP33IfWkYlMEMQfU';
+      token = '00DDz000001qvYA!ARQAQBOo6KydDiL8plaeuWedI5_7MJRVUJDSxTZ20IRM6dJcIKfWEX52KowQV2Qi8x3g4HgYKk1s9fO_TL0c3U6RRASeLcal';
     }
 
     const headers: { [header: string]: string } = {
@@ -150,9 +150,9 @@ export class CrmService {
           }
         }
         if (!pbeId && p.additionalFields) {
-           pbeId = p.additionalFields.PricebookEntryId || p.additionalFields.pricebookEntryId || '';
+          pbeId = p.additionalFields.PricebookEntryId || p.additionalFields.pricebookEntryId || '';
         }
-        
+
         return {
           id: p.id || p.productId || p.Product2Id || '',
           name: p.name || p.additionalFields?.Name || '',
@@ -211,8 +211,8 @@ export class CrmService {
         }
         if (query && query.trim()) {
           const q = query.toLowerCase().trim();
-          mockProducts = mockProducts.filter(p => 
-            p.name.toLowerCase().includes(q) || 
+          mockProducts = mockProducts.filter(p =>
+            p.name.toLowerCase().includes(q) ||
             p.family.toLowerCase().includes(q)
           );
         }
@@ -331,7 +331,7 @@ export class CrmService {
           opportunityName: 'Opportunity Name 1',
           primaryContact: 'Sarah Connor',
           salesChannel: 'Direct',
-          configuredProducts: ['Looker Core'],
+          configuredProducts: ['Google Cloud Platform'],
           billingFrequency: 'Annual in Advance Anniversary',
           termStartsOn: 'Fixed Start Date',
           termStartDate: '2026-02-01',

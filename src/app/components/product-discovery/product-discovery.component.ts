@@ -38,9 +38,8 @@ export class ProductDiscoveryComponent implements OnInit {
         // Dynamically extract unique product families from the FULL response
         this.families = Array.from(new Set(data.map(p => p.family).filter(f => !!f))).sort();
 
-        // Hardcode to display only these two products
-        const allowedProducts = ['Google Cloud Platform RCA', 'Looker New RCA'];
-        this.products = data.filter(p => allowedProducts.includes(p.name));
+        // Display all products
+        this.products = data;
         
         this.applyFilters();
         this.isLoading = false;
@@ -143,6 +142,8 @@ export class ProductDiscoveryComponent implements OnInit {
               sessionStorage.setItem('selectedQuoteId', details.Id);
               sessionStorage.setItem('createdQuoteId', details.Id);
               sessionStorage.setItem('createdQuoteNumber', details.QuoteNumber);
+              sessionStorage.setItem('mockConfiguredProduct', this.cart[0]?.name || 'Looker Core');
+              sessionStorage.setItem('mockConfiguredProductId', this.cart[0]?.id || '');
               this.isLoading = false;
               this.router.navigate(['/quote-details']);
             },
@@ -152,6 +153,8 @@ export class ProductDiscoveryComponent implements OnInit {
               sessionStorage.setItem('selectedQuoteId', quoteRes.salesTransactionId);
               sessionStorage.setItem('createdQuoteId', quoteRes.salesTransactionId);
               sessionStorage.setItem('createdQuoteNumber', 'Q-000000');
+              sessionStorage.setItem('mockConfiguredProduct', this.cart[0]?.name || 'Looker Core');
+              sessionStorage.setItem('mockConfiguredProductId', this.cart[0]?.id || '');
               this.isLoading = false;
               this.router.navigate(['/quote-details']);
             }

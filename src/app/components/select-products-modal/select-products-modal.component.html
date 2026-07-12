@@ -1,0 +1,77 @@
+<div class="modal-backdrop">
+  <div class="modal-container">
+    <div class="modal-header">
+      <h2>Select products</h2>
+      <button class="close-btn" (click)="close.emit()">✕</button>
+    </div>
+
+    <div class="modal-nav">
+      <div class="modal-tabs">
+        <button class="modal-tab active">Product Groups <span class="count-badge blue">{{ products.length }}</span></button>
+        <button class="modal-tab">Individual Products <span class="count-badge">0</span></button>
+      </div>
+      <button class="upload-btn" (click)="upload.emit()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="upload-icon"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+        Upload products
+      </button>
+    </div>
+
+    <div class="modal-filters">
+      <button class="filter-btn" [class.active]="filter === 'All'" (click)="filter = 'All'">Show All</button>
+      <button class="filter-btn" [class.active]="filter === 'Selected'" (click)="filter = 'Selected'">Show selected ({{ selectedCount }})</button>
+    </div>
+
+    <div class="modal-body overflow-y-auto">
+      <table class="products-table">
+        <thead>
+          <tr>
+            <th class="col-checkbox"><input type="checkbox" /></th>
+            <th class="col-name">Product Name ↑</th>
+            <th class="col-count text-right">Family</th>
+            <th class="col-value text-right" *ngIf="!(mode === 'Discount' && granularity === 'Overall')">
+              {{ mode === 'Discount' ? 'Discount' : 'Incentives' }}
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Dynamic Rows -->
+          <tr *ngFor="let p of filteredProducts" [class.active-row]="p.selected">
+            <td class="col-checkbox">
+              <input type="checkbox" [(ngModel)]="p.selected" />
+            </td>
+            <td class="col-name" [class.font-medium]="p.selected">{{ p.name }}</td>
+            <td class="col-count text-right">{{ p.family }}</td>
+            <td class="col-value text-right" [class.text-gray]="!p.selected" *ngIf="!(mode === 'Discount' && granularity === 'Overall')">
+              
+              <!-- Input mode (if selected and granular/incentive) -->
+              <div class="input-prefix-group" *ngIf="p.selected">
+                <span class="prefix">{{ mode === 'Discount' ? '%' : '$' }}</span>
+                <input type="text" class="granular-input" [(ngModel)]="p.value" placeholder="0" />
+              </div>
+
+              <!-- Text mode (if not selected) -->
+              <span *ngIf="!p.selected">
+                {{ mode === 'Discount' ? '% 0' : '$ 0' }}
+              </span>
+
+            </td>
+          </tr>
+          <!-- Empty State for Filters -->
+          <tr *ngIf="filteredProducts.length === 0">
+            <td colspan="4" class="text-center py-8 text-gray-500">No products found.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="modal-footer">
+      <div class="products-remaining-text">
+        <span class="highlight">999</span> of 999 products remaining
+      </div>
+      <div class="footer-actions">
+        <button class="secondary-btn" (click)="close.emit()">Cancel</button>
+        <button class="primary-btn" [disabled]="!isValidToConfirm()" (click)="onConfirm()">Confirm</button>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,126 +1,136 @@
-# Sub-Feature Specification: Quote Details & GCP Commitment Periods Flow
- 
+# Sub-Feature Specification: Quote Commit Flow (Standard & Looker)
+
 **Part of Feature**: `001-quote-subscription-flow`
- 
+
 ---
- 
-## 1. User Interface & Layout
- 
-The Quote Details & GCP Commitment Periods page is a split, double-tab interface where standard GCP commitments are defined, configured, and submitted. The interface features a Salesforce-style light theme with a light grey background (`#f0f2f5`) and clean sans-serif typography (system-ui / Inter).
- 
-### Page Header & Actions
-- **Top Bar**: Shows the account logo/info (e.g., `Cymbal / cymbal.com` on the left with a circular folder icon), a tabbed document interface (`Quote 1` with a `+` tab), and top-right actions:
-  - `Preview approval` (outlined button with a user-card icon)
-  - `Create contract` (solid blue button `bg-[#0f62fe]` with a document-add icon)
-- **Opportunity Reference**: Displays `Opportunity / Opportunity name` in small grey text in the top right corner.
-- **Sub-header Details**:
-  - Quote Number & Configured Product (e.g., `Q-1234 Google Cloud Platform (Commit)` in large bold dark text on the left).
-  - Details panel on the right (neatly aligned columns):
-    - `Contract Start Date`: `[StartDate]`
-    - `Term`: `[Calculated months, e.g. 12 months]`
-    - `Total Contract Value`: `$[Calculated price]` (bold)
-    - A vertical three-dots action icon (`⋮`) at the far right.
-- **Double Tabs**:
-  - **Details**: Pre-filled CRM details and billing parameters.
-  - **Plans & Discounts**: Accordion list containing commitment periods.
-- **Footer Buttons**:
-  - `Cancel` (outlined)
-  - `Save` (outlined)
-  - `Submit` (solid blue `bg-[#0f62fe]` - disabled until at least one valid commitment period is defined)
- 
-### Tab 1: Details (Subscription & Quote Details)
 
-Features a two-column layout: the left column contains the form fields grouped into Quote details, and the right column houses the Payment Account card.
+## 1. Overview & Architecture
 
-#### Left Column (Form Fields):
-- **Quote details Section**:
-  - `Primary contact`: Dropdown field showing user avatar and name ("Sarah Connor"), pre-filled from Opportunity.
-  - `Sales Channel`: Dropdown field. Defaults to `Direct`.
-  - `Quote Start Date`: Date picker. Defaults to today's date.
-  - `Quote Expiration Date`: Disabled text input. Automatically defaults to **30 days** from Quote Start Date (e.g., `Feb 15, 2026`).
+The Commit Flow allows users to define contractual commitment terms (durations and amounts) or Looker subscription periods for a Salesforce Quote. Additionally, it provides a comprehensive "Discounts and Incentives" configuration interface, allowing granular or overall price modifications over specific date ranges. 
 
-#### Right Column (Payment Account Card):
-- **Payment Account Card**:
-  - Bordered container with rounded corners and a soft shadow.
-  - Header: **"Payment Account"** with an edit pencil icon on the right.
-  - `Primary` pill: Light purple background (`bg-purple-100 text-purple-700`) below the header.
-  - Displays primary account holder name (`XXX XXXXXX` bold dark text), billing account number (`XXXXXX-XXXXXX-XXXXXXX`), payment account ID, billing address, and currency.
- 
-### Tab 2: Plans & Discounts
+The UI for this is isolated within the `CommitFlowComponent` (and associated child modals) to ensure strict separation of concerns from the generic subscription flow.
 
-#### Date Inputs (Top Row):
-- Header: **"Commitment Periods"** on the left.
-- Date Pickers (Right Aligned):
-  - `Subscription Start Date` (Date picker, read-only: displays Quote Start Date from Tab 1).
-  - `Subscription End Date` (Date picker, read-only: displays calculated end date from the sum of all commitment period months).
-
-#### Commitment Accordion List:
-- Commitment periods are listed as collapsible card headers (`Commit Period 1`, `Commit Period 2`, etc.).
-- **Card Header Controls**:
-  - **Expand/Collapse** arrow toggle (`v`).
-  - **Duplicate Period** icon button (clones current period's Months and Amount into a new card).
-  - **Remove Period** trash icon (deletes the card; disabled if only one card exists).
-- **Expanded Period Panel**:
-  - Light grey bordered container (`bg-[#f8fafc]` / `bg-gray-50`) with rounded corners.
-  - `Months`: Text input allowing positive integers representing the length of the commitment block.
-  - `Amount`: Text input accepting numeric inputs or shorthand notation (e.g., `100k` or `2.5M`).
-- **Accordion Footer Controls**:
-  - A `+ Add Period` button with a blue icon and text sits below the period list to append a new card (disabled once 5 periods are created, or if the last period has empty values).
- 
-### Visual Mocks Reference
-- **Screen 5**: Explains the default view of the `Details` tab.
-- **Screen 12**: Shows the empty state or first block in `Plans & Discounts` for GCP Commitment.
-- **Screen 13**: Shows multiple commitment accordion cards in collapsed and expanded states.
-- **Screen 14**: Shows shorthand parsing validation on the Amount inputs.
- 
 ---
- 
-## 2. Interaction & Behavior
- 
-### Quote Details Autofill & Expiration
-- **Primary Contact**: Autofilled via Opportunity API hook.
-- **Sales Channel**: Autofilled via Opportunity API hook.
-- **Expiration Date Logic**:
-  - When the user changes `Quote Start Date`, `Quote Expiration Date` is automatically updated to exactly 30 days after the new start date.
- 
-### Commitment Period Management & Date Sync
-- **Adding Periods**:
-  - Clicking `+ Add Period` appends a new blank accordion card at the bottom of the list.
-  - Up to **5 periods** maximum can be added. The add button is disabled when the count reaches 5.
-- **Removing Periods**:
-  - Clicking the remove button deletes the selected period from the array.
-  - The system must enforce a minimum of **1 period**; the remove button is disabled when only one period is left.
-- **Duplicating Periods**:
-  - Clicking the duplicate icon duplicates the current card's `months` and `amount` and pushes it as a new period card.
-- **Shorthand Currency Parsing**:
-  - The `Amount` text input supports keyboard shorthands. On `blur` (focus out), the value is parsed and converted to the full numeric value:
-    - `k` / `K` -> Multiply by 1,000 (e.g. `50k` or `50K` -> `$50,000`)
-    - `m` / `M` -> Multiply by 1,000,000 (e.g. `1.5M` -> `$1,500,000`)
-    - `b` / `B` -> Multiply by 1,000,000,000 (e.g. `2B` -> `$2,000,000,000`)
-  - If a user inputs non-numeric characters without valid multipliers, the input is reset and an error message is shown.
-- **Dynamic Subscription End Date Calculation**:
-  - The system sums all `Months` fields across all configured commitment periods.
-  - The calculated term (in months) is added to the `Subscription Start Date` to determine the `Subscription End Date` (calculated as `StartDate + sum(Months) - 1 Day`).
-  - Changing a period's month length dynamically updates the overall contract duration and Subscription End Date in real-time.
- 
+
+## 2. User Interface & State Flow
+
+### 2.1 Tabbed Interface
+- **Details Tab**: Where the base periods (Standard or Looker) are configured. Standard commitments use a dynamic list of periods (Months, Amount).
+- **Discounts & Incentives Tab**: 
+  - Displays currently configured Discount Periods and Incentive Periods as collapsible cards.
+  - Features a right-hand configuration pane with tabs for "Discounts" and "Incentives".
+  - Collects Date Ranges (Start/End dates) for each overlay.
+  - Collects Configuration properties (e.g., Granularity, Type, Price Reference).
+
+### 2.2 Right-Pane Configuration
+- **Discounts**:
+  - Discount Granularity: `Overall` (applies to all selected products equally) or `Granular` (specific values per product).
+  - Discount Type: `Flat rate (%)`, `Fixed amount`, etc.
+  - Price Reference: `Float`, `Fixed`.
+  - Discount Value: Input field (only visible for `Overall` granularity).
+  - "Select products" button: Opens the Product Selection Modal.
+- **Incentives**:
+  - Similar configuration fields, capturing Incentive Types (e.g., "Incentive type 1").
+
+### 2.3 Product Selection Modal
+- A dedicated modal allowing users to pick which products receive the discount/incentive.
+- **Tabs**: "Product Groups" and "Individual Products".
+- **Table Columns**: Product Group, Number of Products, Discount/Incentive Value.
+- **Interaction**:
+  - Checkboxes to select rows.
+  - If Granular is selected, the right-most column becomes an active input field to specify the exact discount/incentive per product group.
+- **Action**: Includes an "Upload products" button.
+
+### 2.4 Upload Products Modal
+- Triggered from the Product Selection Modal.
+- Provides a drag-and-drop zone for uploading CSV files.
+- Includes a "Download CSV Template" button.
+- Automates the population of granular product selections.
+
+### 2.5 Quote Preview Modal
+- Triggered by clicking "Preview" or "Preview approval" at the bottom/top of the screen.
+- A full-screen or large modal displaying tables:
+  - **Quote summary**: Aggregated totals (Commit value, Total Incentives).
+  - **Commitment Details**: Breakdown of the base commit periods.
+  - **Product**: List of base products.
+  - **Discount period X**: Detailed breakdown of applied discounts per product group.
+  - **Incentives**: Detailed breakdown of applied incentives.
+
 ---
- 
-## 3. Data Dictionary & Field Specs
- 
-| Field / UI Element | Type | Input Method | Default Value | Validation / Rules |
-| :--- | :--- | :--- | :--- | :--- |
-| **Quote Start Date** | Date | Calendar Picker | Today's Date | Must be a valid date. Updates expiration date. |
-| **Quote Expiration Date**| Date | Disabled Input | Start Date + 30 Days | Non-editable. Dynamic recalculation. |
-| **Commitment Months** | Integer | Text Input | None | Mandatory. Must be a positive integer. |
-| **Commitment Amount** | String | Text Input | None | Mandatory. Parsed to number on blur. Supports K, M, B. |
-| **+ Add Period** | Button | Action Link | - | Disabled if count >= 5. Appends a new blank block. |
-| **Duplicate Period** | Icon | Click Event | - | Clones current months/amount to a new period. |
-| **Remove Period** | Icon | Click Event | - | Disabled if only 1 period exists. Deletes period. |
- 
+
+## 3. Data Models
+
+### 3.1 Base Commitments
+```typescript
+interface CommitmentPeriod {
+  months: string | null;
+  amount: number | null;
+  amountStr?: string; // For shorthand UI input (e.g., '10k')
+  isCollapsed: boolean;
+}
+```
+
+### 3.2 Discounts and Incentives
+```typescript
+interface DiscountPeriod {
+  id: string;
+  startDate: string;
+  endDate: string;
+  granularity: 'Overall' | 'Granular';
+  type: string;
+  priceReference: string;
+  value: number | null; // Used if Overall
+  selectedProducts: SelectedProduct[];
+}
+
+interface IncentivePeriod {
+  id: string;
+  startDate: string;
+  endDate: string;
+  type: string;
+  selectedProducts: SelectedProduct[];
+}
+
+interface SelectedProduct {
+  productGroupName: string;
+  numberOfProducts: number;
+  value: number; // The granular discount % or incentive $ amount
+}
+```
+
 ---
- 
-## 4. Edge Cases & Error States
- 
-- **Invalid Shorthand Value**: If a user enters `10xyz` in the Amount input, the input fails verification on blur, displaying an inline error: *"Invalid amount format. Use numbers or shorthands like K, M, B."*
-- **Empty / Incomplete Period Fields**: If a user switches tabs or clicks Save/Submit while a period has empty `Months` or `Amount` inputs, a toast is shown: *"Please fill the Commit Period details first"* and the empty fields are outlined in red.
-- **Shift in Start Date**: If the user shifts the start date in the details tab, the start date of Period 1 is adjusted accordingly, and subsequent dates are recalculated without clearing the months/amount configurations.
+
+## 4. Interaction & Validation Rules
+
+### 4.1 Strict Validations
+1. **Details Prerequisite**: Users cannot configure Discounts or Incentives if the base Commitment Periods are empty or invalid.
+2. **Date Boundaries**: Discount and Incentive date ranges should ideally fall within the overarching term start and end dates.
+3. **Granular Value Requirements**: If a user selects "Granular", they CANNOT add the incentive/discount without specifying the exact price/percentage beside the selected product in the modal.
+4. **Max Commit Periods**: The UI supports adding up to 5 base commit periods.
+
+### 4.2 State Management
+- Maintains isolated arrays for `commitmentPeriods`, `discountPeriods`, and `incentivePeriods`.
+- Recalculates totals dynamically for the Preview Modal.
+
+### 4.3 Timezone Safety
+- All date math (calculating offsets, adding months) MUST use `getUTCDate()` and `Date.UTC` to prevent off-by-one errors caused by browser timezones shifting midnight UTC boundaries.
+
+---
+
+## 5. API Integration Sequence (Salesforce Composite)
+
+Upon clicking Save (`onSkipAndSave`), if the state has changed:
+1. **Update Dates**: `sfApi.updateQuoteDates(...)` - PATCH `/services/data/v65.0/composite/sobjects` to update `StartDate`, `ExpirationDate`, `Term__c`, `Total_Commitment_Value__c`.
+2. **Build Records**: `buildCommitmentRecords()` parses the `StartDate` dynamically and advances it based on each period's `months`.
+3. **Create Commitments**: `sfApi.createQuoteLineCommitments(...)` - POST `/services/data/v65.0/composite/tree/Commitment_Details__c` to insert standard records.
+4. **Discounts & Incentives**: Additional endpoints or child relationships will be utilized to persist `DiscountPeriod` and `IncentivePeriod` records against the Quote Line Item. (Details TBD based on Salesforce schema).
+
+---
+
+## 6. Edge Cases & Error States
+
+- **Missing Granular Values**: "Please specify the value for all selected granular products before confirming."
+- **Max Duration Exceeded**: "Contract duration cannot exceed 5 years." (Blocks save).
+- **Date Gaps (Looker)**: "Period dates must be contiguous. Please correct the gaps." (Blocks save).
+- **Invalid Shorthand**: "Invalid amount format. Use numbers or shorthands like K, M, B."
+- **Empty Fields**: "Please fill the Commit Period details first."

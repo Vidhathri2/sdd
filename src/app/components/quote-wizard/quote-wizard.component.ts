@@ -4,15 +4,17 @@ import { ReactiveFormsModule, FormsModule, FormBuilder, FormGroup, Validators } 
 import { Router } from '@angular/router';
 import { CrmService } from '../../services/crm.service';
 import { PeriodService, Period, ValidationResult } from '../../services/period.service';
+import { CommitFlowComponent } from '../commit-flow/commit-flow.component';
 
 @Component({
   selector: 'app-quote-wizard',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, FormsModule],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule, CommitFlowComponent],
   templateUrl: './quote-wizard.component.html',
   styleUrls: ['./quote-wizard.component.css']
 })
 export class QuoteWizardComponent implements OnInit {
+  isCommitFlow: boolean = false;
   detailsForm: FormGroup;
   
   billingFrequencyOptions: string[] = [];
@@ -31,6 +33,14 @@ export class QuoteWizardComponent implements OnInit {
   customMonthsPerPeriod: number = 12;
 
   activeTab: 'details' | 'plans' = 'details';
+
+  // Dynamic Header Variables for Commit Flow
+  dynamicTermMonths: number = 0;
+  dynamicTotalContractValue: number = 0;
+
+  sessionAccountName: string = '';
+  sessionOpportunityName: string = '';
+  sessionConfiguredProduct: string = '';
 
   constructor(
     private fb: FormBuilder,
@@ -75,11 +85,21 @@ export class QuoteWizardComponent implements OnInit {
   ngOnInit(): void {
     this.loadPicklists();
 
+    this.sessionAccountName = sessionStorage.getItem('selectedAccountName') || '';
+    this.sessionOpportunityName = sessionStorage.getItem('selectedOpportunityName') || '';
+    this.sessionConfiguredProduct = sessionStorage.getItem('mockConfiguredProduct') || '';
+
     const quoteId = sessionStorage.getItem('selectedQuoteId');
     if (quoteId) {
       this.crmService.getQuoteDetails(quoteId).subscribe(details => {
         this.quoteDetails = details;
         this.paymentAccount = details.paymentAccount;
+        
+        // Determine if Commit Flow should be active based on the actual selected product
+        const configuredProduct = sessionStorage.getItem('mockConfiguredProduct') || '';
+        if (configuredProduct === 'Google Cloud Platform RCA' || configuredProduct === 'Google Cloud Platform') {
+          this.isCommitFlow = true;
+        }
 
         // Default expiration date to 45 days from now
         const expDate = new Date();
@@ -244,6 +264,11 @@ export class QuoteWizardComponent implements OnInit {
         this.router.navigate(['/opportunities']);
       }
     });
+  }
+
+  onCommitTotalsChanged(totals: { months: number, amount: number }): void {
+    this.dynamicTermMonths = totals.months;
+    this.dynamicTotalContractValue = totals.amount;
   }
 
   onSubscriptionStartDateChange(newDate: string): void {

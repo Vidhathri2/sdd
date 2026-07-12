@@ -1,0 +1,372 @@
+<div class="commit-flow-container">
+  <!-- Tabs Navigation -->
+  <div class="tabs-nav">
+    <button 
+      class="tab-btn" 
+      [class.active]="activeTab === 'details'" 
+      (click)="activeTab = 'details'">
+      Details
+    </button>
+    <button 
+      class="tab-btn" 
+      [class.active]="activeTab === 'discounts'" 
+      (click)="activeTab = 'discounts'"
+      [disabled]="!canNavigateToDiscounts()">
+      Discounts and Incentives
+    </button>
+  </div>
+
+  <hr class="tab-divider" />
+
+  <!-- Details Tab Content -->
+  <div class="tab-content" *ngIf="activeTab === 'details'">
+    
+    <!-- Added Quote Details and Payment Account -->
+    <div class="grid grid-cols-[1fr_320px] gap-4 items-start mb-6" *ngIf="detailsForm">
+      <!-- Quote details Form Section -->
+      <form [formGroup]="detailsForm" class="form-sections-col space-y-4 flex-1">
+        <div class="form-section">
+          <h3 class="text-sm font-bold text-gray-800 mb-2">Quote details</h3>
+          <div class="grid grid-cols-4 gap-3">
+            
+            <!-- Primary contact -->
+            <div class="field-group border border-gray-200 rounded-lg p-2 bg-white flex items-center">
+              <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150" alt="Contact" class="w-6 h-6 rounded-full mr-2 object-cover" />
+              <div class="flex flex-col flex-1 min-w-0">
+                <span class="text-[9px] text-gray-400 font-bold uppercase tracking-wider leading-none">Primary contact</span>
+                <input type="text" formControlName="primaryContact" class="outline-none text-xs font-semibold text-gray-700 bg-transparent mt-0.5 w-full p-0 border-none" />
+              </div>
+            </div>
+
+            <!-- Sales Channel -->
+            <div class="field-group border border-gray-200 rounded-lg p-2 bg-white flex flex-col relative">
+              <span class="text-[9px] text-gray-400 font-bold uppercase tracking-wider leading-none">Sales Channel</span>
+              <select formControlName="salesChannel" class="outline-none text-xs font-semibold text-gray-700 bg-transparent mt-0.5 w-full p-0 border-none appearance-none">
+                <option value="Direct">Direct</option>
+                <option value="Indirect">Indirect</option>
+              </select>
+            </div>
+
+            <!-- Quote Start Date (Placeholder) -->
+            <div class="field-group border border-gray-200 rounded-lg p-2 bg-white flex flex-col relative">
+              <span class="text-[9px] text-gray-400 font-bold uppercase tracking-wider leading-none">Quote Start date</span>
+              <div class="text-xs font-semibold text-gray-700 mt-0.5">10-07-2026</div>
+            </div>
+
+            <!-- Quote Expiration Date -->
+            <div class="field-group border border-gray-200 rounded-lg p-2 bg-white flex flex-col relative">
+              <span class="text-[9px] text-gray-400 font-bold uppercase tracking-wider leading-none">Quote Expiration date</span>
+              <input type="date" formControlName="quoteExpirationDate" class="outline-none text-xs font-semibold text-gray-700 bg-transparent mt-0.5 w-full p-0 border-none" />
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Total commitment period now in left column -->
+        <h3 class="section-title font-bold text-gray-800 mt-6 mb-4">Total commitment period</h3>
+        
+        <div class="commit-periods-list max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
+          <div class="commit-period-card" *ngFor="let period of commitmentPeriods; let i = index">
+            <div class="period-header relative">
+              <h4>Commit Period {{ i + 1 }}</h4>
+              
+              <div class="dropdown-container" (click)="period.isCollapsed = !period.isCollapsed">
+                <button class="icon-btn" type="button">⋮</button>
+                <div class="dropdown-menu" *ngIf="period.isCollapsed">
+                  <button class="dropdown-item" type="button" (click)="duplicatePeriod(i); $event.stopPropagation()">Duplicate</button>
+                  <button class="dropdown-item" type="button" (click)="deletePeriod(i); $event.stopPropagation()" [disabled]="commitmentPeriods.length === 1">Delete</button>
+                </div>
+              </div>
+
+            </div>
+            <div class="period-body flex-row-layout">
+              <div class="input-group">
+                <label>Period (months)</label>
+                <input type="text" placeholder="Enter" [(ngModel)]="period.months" [ngModelOptions]="{standalone: true}" (ngModelChange)="calculateTotals()" />
+              </div>
+              <div class="input-group">
+                <label>Amount</label>
+                <input type="text" placeholder="Enter" [(ngModel)]="period.amountStr" [ngModelOptions]="{standalone: true}" (ngModelChange)="calculateTotals()" />
+              </div>
+            </div>
+          </div>
+          <button class="add-link-btn" type="button" (click)="addCommitPeriod()" *ngIf="commitmentPeriods.length < 5">
+            + Add Commit Period
+          </button>
+        </div>
+      </form>
+
+      <!-- Right Column (Payment Account) -->
+      <div class="payment-account-card bg-white border border-gray-200 rounded-xl p-4 shadow-sm relative sticky top-4">
+        <h3 class="text-sm font-bold text-gray-800 mb-4">Payment Account</h3>
+        <button class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition">✎</button>
+        
+        <div class="space-y-3">
+          <div>
+            <span class="inline-block bg-gray-100 text-gray-600 text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider mb-1">Primary</span>
+            <div class="text-sm text-gray-800 font-medium">XXX XXXXXX</div>
+          </div>
+          <div>
+            <div class="text-[10px] text-gray-500 mb-0.5">Billing Account</div>
+            <div class="text-xs text-gray-800">XXXXXX-XXXXXX-XXXXXX</div>
+          </div>
+          <div>
+            <div class="text-[10px] text-gray-500 mb-0.5">Payment Account ID</div>
+            <div class="text-xs text-gray-800">XXXXXX-XXXXXX-XXXXXX</div>
+          </div>
+          <div>
+            <div class="text-[10px] text-gray-500 mb-0.5">Billing Address</div>
+            <div class="text-xs text-gray-800">5920 Niagara River Parkway<br>Niagara Falls ON L2E 6X8 CA</div>
+          </div>
+          <div>
+            <div class="text-[10px] text-gray-500 mb-0.5">Billing Currency</div>
+            <div class="text-xs text-gray-800 font-medium">CAD</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Discounts & Incentives Tab Content -->
+  <div class="tab-content layout-split" *ngIf="activeTab === 'discounts'">
+    
+    <!-- Left Column: Added Periods -->
+    <div class="left-pane">
+      
+      <!-- Discount Periods -->
+      <div class="period-block mt-6">
+        <div class="period-card transition-all duration-200 cursor-pointer" 
+             *ngFor="let dp of discountPeriods; let i = index" 
+             [class.mt-4]="i > 0"
+             [class.blue-border]="rightPanelTab === 'Discounts' && selectedDiscountPeriodId == dp.id"
+             (click)="selectDiscountPeriod(dp.id)">
+          <div class="period-card-header">
+            <h4>Discount Period {{ dp.id }}</h4>
+            <span class="badge" *ngIf="rightPanelTab === 'Discounts' && selectedDiscountPeriodId == dp.id">ACTIVE CONFIGURATION</span>
+            <div class="products-remaining-badge">
+              <span class="icon">📦</span> 999 / 999 products remaining
+              <div class="progress-bar-mini"></div>
+            </div>
+          </div>
+          <div class="period-card-body">
+            <div class="row">
+              <div class="input-group">
+                <label>Time period</label>
+                <select [(ngModel)]="dp.timePeriod"><option value="Date range">Date range</option></select>
+              </div>
+              <div class="input-group">
+                <label>Start date</label>
+                <input type="date" [(ngModel)]="dp.startDate" />
+              </div>
+              <div class="input-group">
+                <label>End date</label>
+                <input type="date" [(ngModel)]="dp.endDate" />
+              </div>
+            </div>
+            
+            <div class="empty-state" *ngIf="dp.products.length === 0">
+              No Discounts yet
+            </div>
+            <div *ngIf="dp.products.length > 0" class="mt-4">
+              <div class="flex items-center justify-between border border-gray-200 rounded-lg p-4 bg-white hover:border-blue-300 transition-colors">
+                <div class="flex items-center">
+                  <div class="bg-[#e0f2fe] p-2.5 rounded-lg mr-4 text-blue-500">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path>
+                      <line x1="7" y1="7" x2="7.01" y2="7"></line>
+                    </svg>
+                  </div>
+                  <div>
+                    <div class="text-[13px] font-bold text-gray-800">{{ dp.granularity }} Discount - {{ dp.discountType }}</div>
+                    <div class="text-[11px] text-gray-500 mt-0.5">1 Product Group, {{ dp.products.length }} Products (0:{{dp.products.length}}/5)</div>
+                  </div>
+                </div>
+                <div class="flex items-center space-x-3">
+                  <span class="bg-[#e0f2fe] text-blue-600 font-bold px-3 py-1.5 rounded text-xs" *ngIf="dp.granularity === 'Overall'">{{ dp.overallDiscount || '12%' }}</span>
+                  <span class="bg-[#e0f2fe] text-blue-600 font-bold px-3 py-1.5 rounded text-xs" *ngIf="dp.granularity === 'Granular'">1 group with custom amounts</span>
+                  <button class="text-gray-400 hover:text-gray-600 p-1">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <circle cx="12" cy="12" r="1"></circle>
+                      <circle cx="12" cy="5" r="1"></circle>
+                      <circle cx="12" cy="19" r="1"></circle>
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <button class="add-outline-btn mt-4" (click)="addNewDiscountPeriod()">+ Add another discount period</button>
+      </div>
+
+      <!-- Incentive Periods -->
+      <div class="period-block mt-8">
+        <div class="period-card transition-all duration-200 cursor-pointer" 
+             *ngFor="let ip of incentivePeriods; let j = index" 
+             [class.mt-4]="j > 0"
+             [class.blue-border]="rightPanelTab === 'Incentives' && selectedIncentivePeriodId == ip.id"
+             (click)="selectIncentivePeriod(ip.id)">
+          <div class="period-card-header">
+            <h4>Incentives</h4>
+            <span class="badge" *ngIf="rightPanelTab === 'Incentives' && selectedIncentivePeriodId == ip.id">ACTIVE CONFIGURATION</span>
+          </div>
+          <div class="period-card-body">
+            <div class="row">
+              <div class="input-group">
+                <label>Time period</label>
+                <select [(ngModel)]="ip.timePeriod"><option value="Date range">Date range</option></select>
+              </div>
+              <div class="input-group">
+                <label>Start date</label>
+                <input type="date" [(ngModel)]="ip.startDate" />
+              </div>
+              <div class="input-group">
+                <label>End date</label>
+                <input type="date" [(ngModel)]="ip.endDate" />
+              </div>
+            </div>
+            
+            <div class="empty-state" *ngIf="ip.products.length === 0">
+              No incentives yet
+            </div>
+            <div *ngIf="ip.products.length > 0" class="mt-4">
+              <div class="flex items-center justify-between border border-gray-200 rounded-lg p-4 bg-white hover:border-blue-300 transition-colors">
+                <div class="flex items-center">
+                  <div class="bg-[#e0f2fe] p-2.5 rounded-lg mr-4 text-blue-500">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <polyline points="20 12 20 22 4 22 4 12"></polyline>
+                      <rect x="2" y="7" width="20" height="5"></rect>
+                      <line x1="12" y1="22" x2="12" y2="7"></line>
+                      <path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"></path>
+                      <path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"></path>
+                    </svg>
+                  </div>
+                  <div>
+                    <div class="text-[13px] font-bold text-gray-800">{{ ip.type || 'Incentives type 1' }}</div>
+                    <div class="text-[11px] text-gray-500 mt-0.5">1 Product Group (2.81x)</div>
+                  </div>
+                </div>
+                <div class="flex items-center space-x-3">
+                  <span class="bg-[#e0f2fe] text-blue-600 font-bold px-3 py-1.5 rounded text-xs">1 group with current amounts</span>
+                  <button class="text-gray-400 hover:text-gray-600 p-1">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <circle cx="12" cy="12" r="1"></circle>
+                      <circle cx="12" cy="5" r="1"></circle>
+                      <circle cx="12" cy="19" r="1"></circle>
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Column: Configuration Panel -->
+    <div class="right-pane config-panel">
+      <div class="panel-tabs">
+        <button class="panel-tab-btn" [class.active]="rightPanelTab === 'Discounts'" (click)="rightPanelTab = 'Discounts'">Discounts</button>
+        <button class="panel-tab-btn" [class.active]="rightPanelTab === 'Incentives'" (click)="rightPanelTab = 'Incentives'">Incentives</button>
+      </div>
+      
+      <!-- Discounts Form -->
+      <div class="panel-content" *ngIf="rightPanelTab === 'Discounts'">
+        <div class="input-group full-width">
+          <label>Discount period</label>
+          <select [(ngModel)]="selectedDiscountPeriodId">
+            <option *ngFor="let dp of discountPeriods" [value]="dp.id">Discount Period {{ dp.id }}</option>
+          </select>
+        </div>
+
+        <div class="input-group full-width">
+          <label>Discount Granularity</label>
+          <select [(ngModel)]="configDiscountGranularity">
+            <option value="Overall">Overall</option>
+            <option value="Granular">Granular</option>
+          </select>
+        </div>
+
+        <div class="row half-gap">
+          <div class="input-group">
+            <label>Discount type</label>
+            <select [(ngModel)]="configDiscountType">
+              <option value="Flat rate (%)">Flat rate (%)</option>
+            </select>
+          </div>
+          <div class="input-group">
+            <label>Price reference</label>
+            <select [(ngModel)]="configPriceReference">
+              <option value="Select">Select</option>
+            </select>
+          </div>
+        </div>
+
+        <button class="secondary-btn full-width" (click)="openSelectProductsModal()">Select products</button>
+        
+        <div class="input-group full-width mt-2" *ngIf="configDiscountGranularity === 'Overall'">
+          <label>Discount</label>
+          <input type="text" placeholder="Enter" [(ngModel)]="configOverallDiscount" />
+        </div>
+
+        <button class="primary-btn full-width mt-4" (click)="applyDiscountConfiguration()">+ Add Discount</button>
+      </div>
+
+      <!-- Incentives Form -->
+      <div class="panel-content" *ngIf="rightPanelTab === 'Incentives'">
+        <div class="input-group full-width">
+          <label>Incentives period</label>
+          <select [(ngModel)]="selectedIncentivePeriodId">
+            <option *ngFor="let ip of incentivePeriods" [value]="ip.id">Incentives Period {{ ip.id }}</option>
+          </select>
+        </div>
+
+        <div class="input-group full-width">
+          <label>Incentives type</label>
+          <select [(ngModel)]="configIncentiveType">
+            <option value="Incentives type 1">Incentives type 1</option>
+          </select>
+        </div>
+
+        <button class="secondary-btn full-width" (click)="openSelectProductsModal()">Select products</button>
+        
+        <button class="primary-btn full-width mt-4" (click)="applyIncentiveConfiguration()">+ Add Incentives</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom Actions -->
+  <div class="bottom-actions">
+    <button class="outline-btn" (click)="showQuotePreviewModal = true">Preview</button>
+    <div class="right-actions">
+      <button class="text-btn">Cancel</button>
+      <button class="text-btn">Skip</button>
+      <button class="outline-btn">Submit</button>
+    </div>
+  </div>
+
+  <!-- Modals -->
+  <app-select-products-modal
+    *ngIf="showSelectProductsModal"
+    [mode]="rightPanelTab === 'Discounts' ? 'Discount' : 'Incentive'"
+    [granularity]="configDiscountGranularity"
+    [initialSelectedProducts]="tempSelectedProducts"
+    (confirm)="onProductsConfirmed($event)"
+    (close)="showSelectProductsModal = false"
+    (upload)="showSelectProductsModal = false; showUploadProductsModal = true">
+  </app-select-products-modal>
+
+  <app-upload-products-modal
+    *ngIf="showUploadProductsModal"
+    (close)="showUploadProductsModal = false">
+  </app-upload-products-modal>
+
+  <app-quote-preview-modal
+    *ngIf="showQuotePreviewModal"
+    [quoteDetails]="quoteDetails"
+    [commitmentPeriods]="commitmentPeriods"
+    [discountPeriods]="discountPeriods"
+    [incentivePeriods]="incentivePeriods"
+    (close)="showQuotePreviewModal = false">
+  </app-quote-preview-modal>
+</div>

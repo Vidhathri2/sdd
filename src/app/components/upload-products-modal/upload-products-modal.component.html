@@ -1,0 +1,31 @@
+<div class="modal-backdrop">
+  <div class="modal-container upload-modal">
+    <div class="modal-header">
+      <h2>Upload CSV</h2>
+      <button class="close-btn" (click)="close.emit()">✕</button>
+    </div>
+
+    <div class="modal-body">
+      <p class="subtitle">Upload your CSV file to specify product selection and incentives. The file should include product IDs and incentive amounts or percentages.</p>
+      
+      <div class="upload-zone">
+        <div class="upload-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-gray-400">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="17 8 12 3 7 8"></polyline>
+            <line x1="12" y1="3" x2="12" y2="15"></line>
+          </svg>
+        </div>
+        <p class="upload-text">
+          <span class="font-bold text-blue cursor-pointer">Click to upload</span> or drag and drop
+        </p>
+        <p class="upload-hint">CSV or Excel format (max. 10MB)</p>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="secondary-btn" (click)="close.emit()">Cancel</button>
+      <button class="primary-btn" (click)="close.emit()">Upload</button>
+    </div>
+  </div>
+</div>
