@@ -7,6 +7,9 @@ export interface ChildProduct {
   gcpProjectId: string;
   lookerInstanceId: string;
   discount: number;
+  productId?: string;
+  productCode?: string;
+  crmProductName?: string;
 }
 
 export interface Period {

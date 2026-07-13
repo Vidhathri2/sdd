@@ -94,7 +94,7 @@ export class CrmService {
     }
     if (!token) {
       // Fallback to the development token if none is found
-      token = '00DDz000001qvYA!ARQAQNHhPDIvCDRttwCONZZTwQuLmSMOP37Vjret0za_2CEJETgjhJ9dT_A2X6455AcLL0sHsnV4JmwO_xUV6RqDb.UWeQ04';
+      token = '00DDz000001qvYA!ARQAQCOMsSyXqhZqnwgEgzjwAEwd6zY0sR54H0jwZVCOyPODwV.phlmwSx6QnIfoLdr6eiBtGaXPzw1V4VKpvZg4ZTliMa.6';
     }
 
     const headers: { [header: string]: string } = {
@@ -376,6 +376,128 @@ export class CrmService {
     );
   }
 
+  getBundleQuoteLineItems(quoteId: string): Observable<any> {
+    const query = `SELECT Id,PricebookEntryId,Product2Id,Product2.Name,Product2.Type FROM QuoteLineItem WHERE QuoteId='${quoteId}' AND Product2.Type='Bundle'`;
+    const url = `${this.baseUrl}/services/data/v60.0/query/?q=${encodeURIComponent(query)}`;
+
+    return this.http.get<any>(url, { headers: this.getHeaders() }).pipe(
+      catchError(error => {
+        console.warn('Salesforce getBundleQuoteLineItems API failed. Falling back to local mock.', error);
+        return of({
+          totalSize: 1,
+          done: true,
+          records: [
+            {
+              attributes: { type: 'QuoteLineItem', url: `/services/data/v60.0/sobjects/QuoteLineItem/mock-bundle-line-id` },
+              Id: 'mock-bundle-line-id',
+              Product2Id: 'mock-bundle-product-id',
+              Product2: {
+                Name: sessionStorage.getItem('mockConfiguredProduct') || 'Google Cloud Platform RCA',
+                Type: 'Bundle'
+              },
+              PricebookEntryId: 'mock-pbe-id'
+            }
+          ]
+        });
+      })
+    );
+  }
+
+  getProductDetails(productId: string): Observable<any> {
+    const url = `${this.baseUrl}/services/data/v65.0/connect/cpq/products/${productId}`;
+    return this.http.post<any>(url, {}, { headers: this.getHeaders() }).pipe(
+      catchError(error => {
+        console.warn('Salesforce getProductDetails API failed. Falling back to local mock.', error);
+        return of({
+          apiStatus: {
+            messages: [],
+            statusCode: 'FetchedDetailsSuccessfully'
+          },
+          result: {
+            id: productId,
+            name: 'Looker New RCA',
+            productComponentGroups: [
+              {
+                id: 'y1',
+                name: 'Platform',
+                components: [
+                  {
+                    id: 'mock-platform-std',
+                    name: 'Looker (Google Cloud core) Standard Platform Annual Subscription RCA',
+                    prices: [
+                      { price: 5000.0, pricebookEntryId: 'mock-platform-std-pbe-ann', pricingModel: { frequency: 'Annual' } },
+                      { price: 500.0, pricebookEntryId: 'mock-platform-std-pbe-mon', pricingModel: { frequency: 'Months' } }
+                    ]
+                  },
+                  {
+                    id: 'mock-platform-ent',
+                    name: 'Looker (Google Cloud core) Enterprise Platform Annual Subscription RCA',
+                    prices: [
+                      { price: 10000.0, pricebookEntryId: 'mock-platform-ent-pbe-ann', pricingModel: { frequency: 'Annual' } },
+                      { price: 1000.0, pricebookEntryId: 'mock-platform-ent-pbe-mon', pricingModel: { frequency: 'Months' } }
+                    ]
+                  }
+                ]
+              },
+              {
+                id: 'y2',
+                name: 'Users',
+                components: [
+                  {
+                    id: 'mock-user-std',
+                    name: 'Looker (Google Cloud core) Standard User Annual Subscription RCA',
+                    prices: [
+                      { price: 30.0, pricebookEntryId: 'mock-user-std-pbe-ann', pricingModel: { frequency: 'Annual' } },
+                      { price: 3.0, pricebookEntryId: 'mock-user-std-pbe-mon', pricingModel: { frequency: 'Months' } }
+                    ]
+                  },
+                  {
+                    id: 'mock-user-dev',
+                    name: 'Looker (Google Cloud core) Developer User Annual Subscription RCA',
+                    prices: [
+                      { price: 60.0, pricebookEntryId: 'mock-user-dev-pbe-ann', pricingModel: { frequency: 'Annual' } },
+                      { price: 6.0, pricebookEntryId: 'mock-user-dev-pbe-mon', pricingModel: { frequency: 'Months' } }
+                    ]
+                  },
+                  {
+                    id: 'mock-user-view',
+                    name: 'Looker (Google Cloud core) Viewer User Annual Subscription RCA',
+                    prices: [
+                      { price: 30.0, pricebookEntryId: 'mock-user-view-pbe-ann', pricingModel: { frequency: 'Annual' } },
+                      { price: 3.0, pricebookEntryId: 'mock-user-view-pbe-mon', pricingModel: { frequency: 'Months' } }
+                    ]
+                  }
+                ]
+              },
+              {
+                id: 'y3',
+                name: 'Platform', // matches Platform or Nonprod in real API but we search components
+                components: [
+                  {
+                    id: 'mock-nonprod-std',
+                    name: 'Looker Core Nonprod Standard RCA',
+                    prices: [
+                      { price: 250.0, pricebookEntryId: 'mock-nonprod-std-pbe-ann', pricingModel: { frequency: 'Annual' } },
+                      { price: 25.0, pricebookEntryId: 'mock-nonprod-std-pbe-mon', pricingModel: { frequency: 'Months' } }
+                    ]
+                  },
+                  {
+                    id: 'mock-nonprod-ent',
+                    name: 'Looker Core Nonprod Enterprise RCA',
+                    prices: [
+                      { price: 416.67, pricebookEntryId: 'mock-nonprod-ent-pbe-ann', pricingModel: { frequency: 'Annual' } },
+                      { price: 41.67, pricebookEntryId: 'mock-nonprod-ent-pbe-mon', pricingModel: { frequency: 'Months' } }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        });
+      })
+    );
+  }
+
   private mapSalesforceRecords(records: any[]): Opportunity[] {
     return records.map(rec => {
       let primaryContact = '';
@@ -419,7 +541,7 @@ export class CrmService {
   }
 
   getPicklists(): Observable<any> {
-    const url = `${this.baseUrl}/services/data/v65.0/ui-api/object-info/Quote/picklist-values/012000000000000AAA`;
+    const url = `${this.baseUrl}/services/data/v65.0/ui-api/object-info/QuoteLineItem/picklist-values/012000000000000AAA`;
     
     return this.http.get<any>(url, { headers: this.getHeaders() }).pipe(
       map(response => {
@@ -431,9 +553,10 @@ export class CrmService {
         };
 
         return {
-          billingFrequencies: extractValues('Billing_Frequency__c') ,
-          termStartsOnOptions: extractValues('Term_Starts_On__c') ,
-          operationTypes: extractValues('Operation_Type__c')
+          billingFrequencies: extractValues('Billing_Frequency__c'),
+          termStartsOnOptions: extractValues('Term_Starts_On__c'),
+          operationTypes: extractValues('Operation_Type__c'),
+          regions: extractValues('Looker_Region__c')
         };
       }),
       catchError(error => {
@@ -446,20 +569,27 @@ export class CrmService {
             'Quarterly in Advance',
             'Annual in Advance'
           ],
-          termStartsOnOptions: [
-            'Fixed Start Date',
-            'Upon Provisioning',
-            'Customer Signature Date'
-          ],
-          operationTypes: ['New', 'Upsell', 'Renewal']
+          termStartsOnOptions: ['Fixed Start Date', 'Upon Provisioning', 'Customer Signature Date'],
+          operationTypes: ['New', 'Upsell', 'Renewal'],
+          regions: [
+            'Dallas (us-south-1)',
+            'Oregon (us-west-2)',
+            'Iowa (us-central1)',
+            'Belgium (europe-west1)'
+          ]
         });
       })
     );
   }
 
-  submitQuoteDetails(quoteId: string, payload: any): Observable<any> {
-    console.log('Submitting Quote Details:', quoteId, payload);
-    return of({ success: true });
+  submitQuoteDetails(payload: any): Observable<any> {
+    const url = `${this.baseUrl}/services/data/v65.0/connect/rev/sales-transaction/actions/place`;
+    return this.http.post<any>(url, payload, { headers: this.getHeaders() }).pipe(
+      catchError(error => {
+        console.warn('Salesforce Place Action API failed. Falling back to mock success.', error);
+        return of({ success: true, mocked: true });
+      })
+    );
   }
 
   updateQuoteLineDiscounts(payload: any): Observable<any> {

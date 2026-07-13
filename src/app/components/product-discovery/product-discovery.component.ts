@@ -133,33 +133,21 @@ export class ProductDiscoveryComponent implements OnInit {
       return;
     }
 
+    const quoteName = this.cart.map(p => p.name).join(' + ');
+    sessionStorage.setItem('quoteName', quoteName);
+
     this.isLoading = true;
 
     this.crmService.createQuote(oppId, this.cart).subscribe({
       next: (quoteRes) => {
         if (quoteRes.isSuccess && quoteRes.salesTransactionId) {
-          this.crmService.getQuoteDetails(quoteRes.salesTransactionId).subscribe({
-            next: (details) => {
-              sessionStorage.setItem('selectedQuoteId', details.Id);
-              sessionStorage.setItem('createdQuoteId', details.Id);
-              sessionStorage.setItem('createdQuoteNumber', details.QuoteNumber);
-              sessionStorage.setItem('mockConfiguredProduct', this.cart[0]?.name || 'Looker Core');
-              sessionStorage.setItem('mockConfiguredProductId', this.cart[0]?.id || '');
-              this.isLoading = false;
-              this.router.navigate(['/quote-details']);
-            },
-            error: (err) => {
-              console.error('Failed to get quote details', err);
-              // Fallback routing even if details fails
-              sessionStorage.setItem('selectedQuoteId', quoteRes.salesTransactionId);
-              sessionStorage.setItem('createdQuoteId', quoteRes.salesTransactionId);
-              sessionStorage.setItem('createdQuoteNumber', 'Q-000000');
-              sessionStorage.setItem('mockConfiguredProduct', this.cart[0]?.name || 'Looker Core');
-              sessionStorage.setItem('mockConfiguredProductId', this.cart[0]?.id || '');
-              this.isLoading = false;
-              this.router.navigate(['/quote-details']);
-            }
-          });
+          sessionStorage.setItem('selectedQuoteId', quoteRes.salesTransactionId);
+          sessionStorage.setItem('createdQuoteId', quoteRes.salesTransactionId);
+          sessionStorage.setItem('createdQuoteNumber', 'Q-Pending');
+          sessionStorage.setItem('mockConfiguredProduct', this.cart[0]?.name || 'Looker Core');
+          sessionStorage.setItem('mockConfiguredProductId', this.cart[0]?.id || '');
+          this.isLoading = false;
+          this.router.navigate(['/quote-details']);
         } else {
           alert('Failed to place quote transaction.');
           this.isLoading = false;

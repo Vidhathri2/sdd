@@ -311,7 +311,7 @@ Executed during application startup to obtain dynamic active credentials from th
     ```
 
 ### 10. Load Salesforce Form Picklists (GET)
-*   **Endpoint:** `/services/data/v65.0/ui-api/object-info/Quote/picklist-values/012000000000000AAA`
+*   **Endpoint:** `/services/data/v65.0/ui-api/object-info/QuoteLineItem/picklist-values/012000000000000AAA`
 *   **Service Method:** `SalesforceApiService.getAllPicklistValues`
 *   **Description:** Dynamically populates form inputs (Billing Frequency, Operation Type, Term Starts On).
 *   **Payload:** None

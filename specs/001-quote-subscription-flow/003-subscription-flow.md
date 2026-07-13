@@ -77,18 +77,18 @@ Features a two-column layout: the left column contains the form fields grouped i
 - **Collapsed Period Header**: Shows Period name, start date, and end date (e.g., `Period 2 Start date: Feb 1, 2027 / Period 2 End date: Jan 31, 2028`), a vertical three-dot menu icon (`⋮`), and a collapse chevron arrow (`v`).
 - **Expanded Period Panel**:
   - **Header Row**:
-    - `Platform` product dropdown (e.g., showing selection like `Standard Annual Subscription`, with a grey price label `$5,000.00 / year` directly below it).
+    - `Platform` product dropdown (e.g., showing dynamic selection, with a grey price label resolving dynamically from the API's 'Months' frequency pricingModel directly below it).
     - `Period 1 Start date` (disabled/readonly date picker, e.g., `Feb 1, 2026`).
     - `Period 1 End date` (readonly date picker, e.g., `Jan 31, 2027`, with a duration label like `12M 0D (365 Days)` directly below it).
     - `Discount` input (e.g., numeric input with percentage sign, showing `50%`).
   - **Child Products Table/Rows**:
     - Displays rows for four Looker Core child products:
-      1. **Standard User** (Base price indicator: `$30 / Year`)
-      2. **Developer User** (Base price indicator: `$60 / Year`)
-      3. **Viewer User** (Base price indicator: `$30 / Year`)
-      4. **Non-prod** (Base price indicator: `$416.67 / Year`)
+      1. **Standard User** (Base price indicator: dynamically fetched using 'Months' frequency)
+      2. **Developer User** (Base price indicator: dynamically fetched using 'Months' frequency)
+      3. **Viewer User** (Base price indicator: dynamically fetched using 'Months' frequency)
+      4. **Non-prod** (Base price indicator: dynamically fetched using 'Months' frequency, dependent on selected Platform product)
     - Columns for each child product row:
-      - Product Label & Price (Left aligned, bold text with small grey subtext)
+      - Product Label & Price (Left aligned, bold text with small grey subtext containing dynamic API price)
       - `Quantity` input field (e.g., default `0` or numeric value)
       - `Region` dropdown select (e.g., `Dallas (us-south-1)`)
       - `GCP Project ID` text input (placeholder `Enter` or alphanumeric value)

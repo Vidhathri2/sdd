@@ -1,8 +1,8 @@
-<div class="min-h-screen bg-[#f0f2f5] text-slate-700 font-sans p-6 md:p-8">
-  <div class="max-w-7xl mx-auto space-y-6">
+<div class="h-screen w-screen bg-[#f0f2f5] text-slate-700 font-sans flex flex-col p-4 md:p-6 overflow-hidden">
+  <div class="flex-1 flex flex-col min-h-0 space-y-4">
 
     <!-- Top Navigation Bar / Header -->
-    <header class="flex items-center justify-between bg-white px-6 py-3 rounded-2xl border border-gray-200 shadow-sm gap-4">
+    <header class="flex items-center justify-between bg-white px-6 py-3 rounded-2xl border border-gray-200 shadow-sm gap-4 shrink-0">
       <!-- Left side: Hamburger and title -->
       <div class="flex items-center gap-3 text-gray-800">
         <button type="button" class="text-gray-500 hover:text-gray-800 focus:outline-none" (click)="onBack()">
@@ -48,7 +48,7 @@
     </header>
 
     <!-- Main Container Card -->
-    <div class="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
+    <div class="bg-white rounded-2xl border border-gray-200 shadow-sm p-5 md:p-6 flex-1 flex flex-col min-h-0 overflow-hidden">
       
       <!-- Back Arrow and Title -->
       <div class="flex items-center gap-3 mb-6">
@@ -81,10 +81,10 @@
       </div>
 
       <!-- Grid for Product catalog columns -->
-      <div class="grid grid-cols-1 md:grid-cols-4 gap-6 items-start">
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-6 items-stretch flex-1 min-h-0 overflow-hidden">
         
         <!-- Left Sidebar: Product Family selection -->
-        <aside class="md:col-span-1 space-y-4">
+        <aside class="md:col-span-1 space-y-4 overflow-y-auto max-h-full">
           <div class="bg-[#f0f2f5] rounded-2xl p-5 border border-transparent">
             <h3 class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">Product family</h3>
             <ul class="space-y-1">
@@ -107,7 +107,7 @@
         <!-- Center Panel: Products List -->
         <main 
           [ngClass]="isCartOpen && cart.length > 0 ? 'md:col-span-2' : 'md:col-span-3'" 
-          class="space-y-4 min-w-0 transition-all duration-300"
+          class="space-y-3 min-w-0 transition-all duration-300 overflow-y-auto max-h-full pr-1"
         >
           <!-- Loading State -->
           <div *ngIf="isLoading" class="py-20 flex flex-col items-center justify-center gap-2">
@@ -207,7 +207,7 @@
         <!-- Right Side: Added products column -->
         <aside 
           *ngIf="isCartOpen && cart.length > 0" 
-          class="md:col-span-1 cart-drawer bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden flex flex-col justify-between"
+          class="md:col-span-1 cart-drawer bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden flex flex-col justify-between max-h-full"
         >
           <!-- Cart Header -->
           <div class="px-5 py-4 border-b border-gray-150 flex items-center justify-between">
