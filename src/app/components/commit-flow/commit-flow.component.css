@@ -336,14 +336,10 @@ h4 {
   overflow: hidden;
   position: relative;
 }
-.progress-bar-mini::after {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  width: 100%;
+.progress-fill {
+  height: 100%;
   background: #1a73e8;
+  transition: width 0.3s ease;
 }
 
 .period-card-body {
@@ -421,4 +417,9 @@ h4 {
   display: flex;
   gap: 8px;
   align-items: center;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }

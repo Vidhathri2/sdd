@@ -10,6 +10,7 @@ export interface ChildProduct {
   productId?: string;
   productCode?: string;
   crmProductName?: string;
+  searchKey?: string;
 }
 
 export interface Period {

@@ -534,8 +534,9 @@
         <button class="btn-footer-outline px-4 py-1.5 border border-gray-300 rounded-lg text-xs font-semibold text-gray-600 bg-white hover:bg-gray-50 transition shadow-sm">
           Save
         </button>
-        <button class="btn-footer-submit px-5 py-1.5 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition rounded-lg text-xs font-semibold text-white shadow-sm" type="submit" [disabled]="isSubmitDisabled" (click)="submitQuote()">
-          Submit
+        <button class="btn-footer-submit px-5 py-1.5 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition rounded-lg text-xs font-semibold text-white shadow-sm flex items-center gap-1.5" type="submit" [disabled]="isSubmitDisabled" (click)="submitQuote()">
+          <span *ngIf="isSubmitting" class="inline-block w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+          {{ isSubmitting ? 'Submitting...' : 'Submit' }}
         </button>
       </footer>
 
@@ -765,11 +766,28 @@
   </div>
 
   <!-- Toast Notification -->
-  <div *ngIf="toastMessage" class="fixed top-6 right-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm shadow-lg z-50 flex items-center gap-2 transition-all transform duration-300 ease-in-out translate-y-0 opacity-100 font-semibold">
-    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+  <div *ngIf="toastMessage" 
+    class="fixed top-6 right-6 px-4 py-3 rounded-lg text-sm shadow-lg z-50 flex items-center gap-2 transition-all transform duration-300 ease-in-out translate-y-0 opacity-100 font-semibold"
+    [ngClass]="{
+      'bg-red-50 border border-red-200 text-red-700': toastType === 'error',
+      'bg-green-50 border border-green-200 text-green-700': toastType === 'success',
+      'bg-blue-50 border border-blue-200 text-blue-700': toastType === 'info'
+    }">
+    <!-- Error icon -->
+    <svg *ngIf="toastType === 'error'" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
       <circle cx="12" cy="12" r="10"></circle>
       <line x1="12" y1="8" x2="12" y2="12"></line>
       <line x1="12" y1="16" x2="12.01" y2="16"></line>
+    </svg>
+    <!-- Success icon -->
+    <svg *ngIf="toastType === 'success'" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+    </svg>
+    <!-- Info icon -->
+    <svg *ngIf="toastType === 'info'" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="10"></circle>
+      <line x1="12" y1="16" x2="12" y2="12"></line>
+      <line x1="12" y1="8" x2="12.01" y2="8"></line>
     </svg>
     {{ toastMessage }}
   </div>

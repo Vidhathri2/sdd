@@ -10,6 +10,13 @@
         <button class="modal-tab" [class.active]="activeTab === 'Groups'" (click)="activeTab = 'Groups'">Product Groups <span class="count-badge" [class.blue]="activeTab === 'Groups'">{{ groupProducts.length }}</span></button>
         <button class="modal-tab" [class.active]="activeTab === 'Individuals'" (click)="activeTab = 'Individuals'">Individual Products <span class="count-badge" [class.blue]="activeTab === 'Individuals'">{{ individualProducts.length }}</span></button>
       </div>
+
+      <!-- Global Search placed in the top bar beside the tabs -->
+      <div class="search-bar-container-horizontal top-search-bar">
+        <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+        <input type="text" class="global-search-input" style="font-size: 13px;" placeholder="Search by SKU, Name, or description..." [ngModel]="searchTerm" (ngModelChange)="onSearchChange($event)">
+      </div>
+
       <button class="upload-btn" (click)="upload.emit()">
         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="upload-icon"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
         Upload products
@@ -30,7 +37,7 @@
     </ng-container>
 
     <!-- Individuals Tab (Horizontal Ribbon Layout) -->
-    <div class="horizontal-search-layout" *ngIf="activeTab === 'Individuals'">
+    <div class="horizontal-search-layout" style="flex:1; min-height:0;" *ngIf="activeTab === 'Individuals'">
       
       <!-- Horizontal Product Groups Ribbon -->
       <div class="product-group-ribbon">
@@ -46,11 +53,6 @@
 
       <!-- Main Results Area -->
       <div class="search-results-area-full">
-        <div class="search-bar-container-horizontal">
-          <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-          <input type="text" class="global-search-input" placeholder="Search by SKU, Name, or description..." [ngModel]="searchTerm" (ngModelChange)="onSearchChange($event)">
-        </div>
-        
         <div class="products-table-wrapper-full">
            <ng-container *ngTemplateOutlet="productsTableTpl"></ng-container>
         </div>
@@ -62,9 +64,13 @@
       <table class="products-table">
         <thead>
           <tr>
-            <th class="col-checkbox"><input type="checkbox" /></th>
-            <th class="col-name">Product Name ↑</th>
-            <th class="col-count text-right">Family</th>
+            <th class="col-checkbox">
+              <input type="checkbox" [checked]="isAllSelected" (change)="toggleSelectAll($any($event.target).checked)" />
+            </th>
+            <th class="col-name cursor-pointer user-select-none" (click)="toggleSort()">
+              Product Name {{ sortDirection === 'asc' ? '↑' : '↓' }}
+            </th>
+            <th class="col-count text-right">{{ activeTab === 'Groups' ? 'No. of Products' : 'Family' }}</th>
             <th class="col-value text-right" *ngIf="!(mode === 'Discount' && granularity === 'Overall')">
               {{ mode === 'Discount' ? 'Discount' : 'Incentives' }}
             </th>
@@ -77,7 +83,9 @@
               <input type="checkbox" [(ngModel)]="p.selected" />
             </td>
             <td class="col-name" [class.font-medium]="p.selected">{{ p.name }}</td>
-            <td class="col-count text-right">{{ p.family }}</td>
+            <td class="col-count text-right">
+              {{ activeTab === 'Groups' ? p.noOfChildProducts : p.family }}
+            </td>
             <td class="col-value text-right" [class.text-gray]="!p.selected" *ngIf="!(mode === 'Discount' && granularity === 'Overall')">
               
               <!-- Input mode (if selected and granular/incentive) -->

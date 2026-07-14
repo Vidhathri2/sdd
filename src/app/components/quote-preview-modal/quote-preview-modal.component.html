@@ -8,140 +8,154 @@
 
     <div class="modal-body preview-body">
       
-      <!-- Quote Summary Section -->
-      <h3 class="section-title">Quote summary</h3>
-      <table class="preview-table blue-theme mb-6">
-        <thead>
-          <tr>
-            <th>Quote number</th>
-            <th>Quote name</th>
-            <th colspan="4"></th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr class="subheader-row">
-            <td>{{ quoteDetails?.QuoteNumber || 'Q-00005087' }}</td>
-            <td>{{ quoteDetails?.Name || 'DealManagement-1783665896758' }}</td>
-            <td colspan="4"></td>
-          </tr>
-          <tr class="header-row-2">
-            <th>Customer</th>
-            <th>Opportunity</th>
-            <th>Quote Start Date</th>
-            <th>Total Commit period (months)</th>
-            <th>Total Commit value</th>
-            <th>Total Incentives</th>
-          </tr>
-          <tr>
-            <td>{{ sessionAccountName || quoteDetails?.Account?.Name || 'RioVerde Manufacturing S.A.' }}</td>
-            <td>{{ sessionOpportunityName || quoteDetails?.Opportunity?.Name || 'New Opportunity' }}</td>
-            <td>{{ quoteDetails?.CreatedDate | date:'MM-dd-yyyy' || '07-10-2026' }}</td>
-            <td class="font-bold">{{ totalCommitmentMonths }}</td>
-            <td class="font-bold">{{ totalCommitmentValue | currency:'USD' }}</td>
-            <td class="font-bold">$0.00</td>
-          </tr>
-        </tbody>
-      </table>
+      <!-- Loading indicator -->
+      <div *ngIf="isLoading" class="flex flex-col items-center justify-center py-16 space-y-4">
+        <div class="w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+        <p class="text-xs font-semibold text-gray-500">Fetching live Quote Preview from Salesforce...</p>
+      </div>
 
-      <!-- Commitment Details Section -->
-      <h3 class="section-title">Commitment Details</h3>
-      <table class="preview-table blue-theme mb-6">
-        <thead>
-          <tr>
-            <th>Line name</th>
-            <th>Commitments</th>
-            <th>Period (months)</th>
-            <th>Commitment value</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let p of commitmentPeriods; let i = index">
-            <td>{{ i + 1 }}</td>
-            <td>Period {{ i + 1 }}</td>
-            <td>{{ p.months || '-' }}</td>
-            <td class="font-bold">{{ p.amountStr ? '$' + p.amountStr : '-' }}</td>
-          </tr>
-        </tbody>
-      </table>
+      <div *ngIf="!isLoading">
+        <!-- Quote Summary Section -->
+        <h3 class="section-title">Quote summary</h3>
+        <table class="preview-table blue-theme mb-6">
+          <thead>
+            <tr>
+              <th>Quote number</th>
+              <th>Quote name</th>
+              <th colspan="4"></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="subheader-row">
+              <td>{{ previewData?.QuoteNumber || quoteDetails?.QuoteNumber || 'Q-00005087' }}</td>
+              <td>{{ previewData?.Name || quoteDetails?.Name || 'DealManagement-1783665896758' }}</td>
+              <td colspan="4"></td>
+            </tr>
+            <tr class="header-row-2">
+              <th>Customer</th>
+              <th>Opportunity</th>
+              <th>Quote Start Date</th>
+              <th>Total Commit period (months)</th>
+              <th>Total Commit value</th>
+              <th>Total Incentives</th>
+            </tr>
+            <tr>
+              <td>{{ previewData?.Account?.Name || sessionAccountName || quoteDetails?.Account?.Name || 'RioVerde Manufacturing S.A.' }}</td>
+              <td>{{ previewData?.Opportunity?.Name || sessionOpportunityName || quoteDetails?.Opportunity?.Name || 'New Opportunity' }}</td>
+              <td>{{ ((previewData?.StartDate || quoteDetails?.CreatedDate) | date:'MM-dd-yyyy') || '07-10-2026' }}</td>
+              <td class="font-bold">{{ totalCommitmentMonths }}</td>
+              <td class="font-bold">{{ totalCommitmentValue | currency:'USD' }}</td>
+              <td class="font-bold">{{ totalIncentivesValue | currency:'USD' }}</td>
+            </tr>
+          </tbody>
+        </table>
 
-      <!-- Product Section -->
-      <h3 class="section-title">Product</h3>
-      <table class="preview-table blue-theme mb-8">
-        <thead>
-          <tr>
-            <th>#</th>
-            <th>Product Name</th>
-            <th>Quantity</th>
-            <th>Discount (%)</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>1</td>
-            <td>{{ sessionConfiguredProduct || quoteDetails?.configuredProducts?.[0] || 'Google Cloud Platform RCA' }}</td>
-            <td>1</td>
-            <td>0%</td>
-          </tr>
-        </tbody>
-      </table>
+        <!-- Commitment Details Section -->
+        <h3 class="section-title">Commitment Details</h3>
+        <table class="preview-table blue-theme mb-6">
+          <thead>
+            <tr>
+              <th>Line name</th>
+              <th>Commitments</th>
+              <th>Period (months)</th>
+              <th>Commitment value</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let p of commitmentPeriods; let i = index">
+              <td>{{ i + 1 }}</td>
+              <td>Period {{ i + 1 }}</td>
+              <td>{{ p.months || '-' }}</td>
+              <td class="font-bold">{{ p.amountStr ? '$' + p.amountStr : '-' }}</td>
+            </tr>
+          </tbody>
+        </table>
 
-      <!-- Discount Periods Section -->
-      <ng-container *ngFor="let dp of discountPeriods; let i = index">
-        <ng-container *ngIf="dp.products.length > 0">
-          <div class="section-header-row mb-4">
-            <h2 class="large-title">Discount period {{ dp.id }}</h2>
-            <div class="date-badge">📅 {{ dp.startDate || 'N/A' }} - {{ dp.endDate || 'N/A' }}</div>
-          </div>
-          <h4 class="sub-title">Product Groups</h4>
-          <table class="preview-table purple-theme mb-8">
-            <thead>
-              <tr>
-                <th>Discount Type</th>
-                <th>Discount</th>
-                <th>Price reference</th>
-                <th>Products</th>
+        <!-- Product Section -->
+        <h3 class="section-title">Product</h3>
+        <table class="preview-table blue-theme mb-8">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Product Name</th>
+              <th>Quantity</th>
+              <th>Discount (%)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <ng-container *ngIf="sfProducts.length > 0">
+              <tr *ngFor="let p of sfProducts; let idx = index">
+                <td>{{ idx + 1 }}</td>
+                <td>{{ p.name }}</td>
+                <td>{{ p.quantity }}</td>
+                <td>{{ p.discount || 0 }}%</td>
               </tr>
-            </thead>
-            <tbody>
+            </ng-container>
+            <ng-container *ngIf="sfProducts.length === 0">
               <tr>
-                <td>{{ dp.discountType || 'Flat rate (%)' }}</td>
-                <td class="font-bold">{{ dp.granularity === 'Overall' ? dp.overallDiscount : 'Custom' }}</td>
-                <td>{{ dp.priceReference || 'Select' }}</td>
-                <td>
-                  <div *ngFor="let prod of dp.products">{{ prod.name }}</div>
-                </td>
+                <td>1</td>
+                <td>{{ sessionConfiguredProduct || quoteDetails?.configuredProducts?.[0] || 'Google Cloud Platform RCA' }}</td>
+                <td>1</td>
+                <td>0%</td>
               </tr>
-            </tbody>
-          </table>
+            </ng-container>
+          </tbody>
+        </table>
+
+        <!-- Discount Periods Section -->
+        <ng-container *ngFor="let dp of (sfDiscountPeriods.length > 0 ? sfDiscountPeriods : discountPeriods); let i = index">
+          <ng-container *ngIf="dp.products.length > 0">
+            <div class="section-header-row mb-4">
+              <h2 class="large-title">Discount period {{ dp.id }}</h2>
+              <div class="date-badge">📅 {{ dp.startDate || 'N/A' }} - {{ dp.endDate || 'N/A' }}</div>
+            </div>
+            <h4 class="sub-title">Product Groups</h4>
+            <table class="preview-table purple-theme mb-8">
+              <thead>
+                <tr>
+                  <th>Discount Type</th>
+                  <th>Discount</th>
+                  <th>Product</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let prod of dp.products">
+                  <td>{{ dp.discountType || 'Flat rate (%)' }}</td>
+                  <td class="font-bold">
+                    {{ (prod.discount !== null && prod.discount !== undefined && prod.discount !== '') ? (prod.discount + '%') : (dp.granularity === 'Overall' ? dp.overallDiscount : 'Custom') }}
+                  </td>
+                  <td class="font-semibold text-gray-800">{{ prod.name }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </ng-container>
         </ng-container>
-      </ng-container>
 
-      <!-- Incentive Periods Section -->
-      <ng-container *ngFor="let ip of incentivePeriods; let i = index">
-        <ng-container *ngIf="ip.products.length > 0">
-          <div class="section-header-row mb-4">
-            <h2 class="large-title">Incentive period {{ ip.id }}</h2>
-            <div class="date-badge">📅 {{ ip.startDate || 'N/A' }} - {{ ip.endDate || 'N/A' }}</div>
-          </div>
-          <h4 class="sub-title">Configured Incentives</h4>
-          <table class="preview-table purple-theme mb-8">
-            <thead>
-              <tr>
-                <th>Type</th>
-                <th>Products</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>{{ ip.type || 'Incentives type 1' }}</td>
-                <td>
-                  <div *ngFor="let prod of ip.products">{{ prod.name }}</div>
-                </td>
-              </tr>
-            </tbody>
-          </table>
+        <!-- Incentive Periods Section -->
+        <ng-container *ngFor="let ip of (sfIncentivePeriods.length > 0 ? sfIncentivePeriods : incentivePeriods); let i = index">
+          <ng-container *ngIf="ip.products.length > 0">
+            <div class="section-header-row mb-4">
+              <h2 class="large-title">Incentive period {{ ip.id }}</h2>
+              <div class="date-badge">📅 {{ ip.startDate || 'N/A' }} - {{ ip.endDate || 'N/A' }}</div>
+            </div>
+            <h4 class="sub-title">Configured Incentives</h4>
+            <table class="preview-table purple-theme mb-8">
+              <thead>
+                <tr>
+                  <th>Type</th>
+                  <th>Product</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let prod of ip.products">
+                  <td>{{ ip.type || 'Incentives type 1' }}</td>
+                  <td class="font-semibold text-gray-800">{{ prod.name }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </ng-container>
         </ng-container>
-      </ng-container>
+      </div>
 
     </div>
 

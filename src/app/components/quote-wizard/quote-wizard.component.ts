@@ -41,18 +41,21 @@ export class QuoteWizardComponent implements OnInit {
   showCreatePeriodsModal: boolean = false;
   showPreviewModal: boolean = false;
   showSuccessModal: boolean = false;
+  isSubmitting: boolean = false;
   generationMode: string = 'Yearly';
   customMonthsPerPeriod: number = 12;
 
   activeTab: 'details' | 'plans' = 'details';
 
   toastMessage: string | null = null;
+  toastType: 'error' | 'success' | 'info' = 'error';
 
-  showToast(message: string): void {
+  showToast(message: string, type: 'error' | 'success' | 'info' = 'error'): void {
     this.toastMessage = message;
+    this.toastType = type;
     setTimeout(() => {
       this.toastMessage = null;
-    }, 3000);
+    }, 4000);
   }
 
   onTabChange(tab: 'details' | 'plans') {
@@ -166,6 +169,16 @@ export class QuoteWizardComponent implements OnInit {
             this.crmService.getProductDetails(productId).subscribe(hierarchy => {
               this.bundleHierarchy = hierarchy;
               this.refreshPeriodsChildProducts();
+            });
+
+            // Fetch bundle product classifications on page load
+            this.crmService.getProductClassifications(productId).subscribe({
+              next: (classifications) => {
+                console.log('[QuoteWizard OnInit] Successfully fetched ProductClassifications for commit flow:', classifications);
+              },
+              error: (err) => {
+                console.warn('[QuoteWizard OnInit] Failed to fetch ProductClassifications on load:', err);
+              }
             });
           }
         });
@@ -368,25 +381,57 @@ export class QuoteWizardComponent implements OnInit {
   }
 
   submitQuote(): void {
-    const validation = this.validateAllPeriods();
-    if (!validation.isValid || this.periods.length === 0 || this.detailsForm.invalid) {
-      return; 
+    // Step 1: Validate the Details form
+    if (this.detailsForm.invalid) {
+      this.detailsForm.markAllAsTouched();
+      this.showToast('Please fill in all required fields in the Details tab before submitting.', 'error');
+      this.activeTab = 'details';
+      return;
     }
 
-    const payload = this.buildSubmitPayload();
+    // Step 2: Require at least one subscription period
+    if (this.periods.length === 0) {
+      this.showToast('Please create at least one subscription period in the Plans & Discounts tab before submitting.', 'error');
+      this.activeTab = 'plans';
+      return;
+    }
 
+    // Step 3: Validate all period configurations
+    const validation = this.validateAllPeriods();
+    if (!validation.isValid) {
+      const msg = validation.errors?.[0]?.message || 'One or more subscription periods are incomplete. Please select a Platform for each period.';
+      this.showToast(msg, 'error');
+      this.activeTab = 'plans';
+      return;
+    }
+
+    // Step 4: Build composite graph payload
+    const payload = this.buildSubmitPayload();
+    console.log('[Submit] Composite Graph Payload:', JSON.stringify(payload, null, 2));
+
+    // Step 5: Fire the single API call
+    this.isSubmitting = true;
     this.crmService.submitQuoteDetails(payload).subscribe(
       res => {
+        this.isSubmitting = false;
         if (res && (res.isSuccess || res.success)) {
           this.showSuccessModal = true;
         } else {
-          const errorMsg = res?.errorResponse?.[0]?.message || res?.errors?.[0]?.message || 'Quote creation failed. Please check your configurations.';
-          this.showToast(errorMsg);
+          const errorMsg = res?.errorResponse?.[0]?.message
+            || res?.errors?.[0]?.message
+            || res?.message
+            || 'Quote submission failed. Please review your configuration and try again.';
+          this.showToast(errorMsg, 'error');
         }
       },
       error => {
-        const errorMsg = error?.message || 'An error occurred during submission.';
-        this.showToast(errorMsg);
+        this.isSubmitting = false;
+        const errorMsg = error?.error?.[0]?.message
+          || error?.error?.message
+          || error?.message
+          || 'An unexpected error occurred during submission. Please try again.';
+        console.error('[Submit] Error:', error);
+        this.showToast(errorMsg, 'error');
       }
     );
   }
@@ -840,7 +885,7 @@ export class QuoteWizardComponent implements OnInit {
   }
 
   get isSubmitDisabled(): boolean {
-    return this.periods.length === 0 || this.detailsForm.invalid;
+    return this.isSubmitting || this.detailsForm.invalid;
   }
 
   getBillingFrequencyKey(): 'Annual' | 'Months' {
@@ -1334,4 +1379,5 @@ export class QuoteWizardComponent implements OnInit {
     const url = `${salesforceDomain}/lightning/r/Quote/${this.currentQuoteId}/view`;
     window.open(url, '_blank');
   }
+
 }
