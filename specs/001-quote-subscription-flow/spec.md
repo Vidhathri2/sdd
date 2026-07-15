@@ -72,7 +72,7 @@ Under this MVP, the system strictly supports configuration for the following cor
 - *Empty Search Results*: Display "No products match your search. Try a different keyword."
   
 ### Phase 3: Quote Details & Subscription Periods Flow (Looker Core)
-A split, double-tab interface where the quote properties and temporal ramp schedules are defined and configured.
+A split, double-tab interface managed by the `SubscriptionFlowComponent` (formerly `QuoteWizardComponent`) where the quote properties and temporal ramp schedules are defined and configured.
   
 **UI Structure & Behavior:**
 - **Tab 1 - Details**:
@@ -82,14 +82,16 @@ A split, double-tab interface where the quote properties and temporal ramp sched
   - `Quote Expiration Date`: Defaults to 45 days from creation.
   - `Billing Frequency`: Fetched from picklists, prefilled default.
   - `Term Starts on`: Defaults to `Fixed Start Date`.
-  - `Term Start Date` & `Term End Date`: Date selectors.
+  - `Term Start Date` & `Term End Date`: Date selectors. The `Term End Date` is constrained to prevent selecting dates before `Term Start Date`.
 - **Tab 2 - Plans & Discounts**:
-  - `Subscription Start/End Date`: Linked to Details.
+  - `Subscription Start/End Date`: Linked to Details. The end date input blocks previous dates using `[min]="subscriptionStartDate"`.
   - **Period Configuration Generation**:
-    - **Yearly**: Calculates term duration and generates N periods (max 1 year duration each), bounded by overall term dates.
-    - **Custom**: Custom month durations and manual `+ Add Period` operations.
-    - **Ramp Panel Grid**: Collapsible generated periods. Contains Platform Child Products, Users Child Products (Standard, Developer, Viewer), Non-prod rows.
-    - **Validation**: If child quantity > 0, `Region`, `GCP Project ID`, and `Looker Instance ID` are mandatory. Date sequence must have no gaps/overlaps.
+    - **Yearly**: Generates N periods (max 1 year duration each). Validation blocks generation if the overall term is not exactly in years (multiple of 12 months, 0 remaining days), throwing a warning toast: *"For Yearly, you must select a duration of exact years."*
+    - **Custom**: Clicking `+ Add Period` appends a new empty period with blank dates, leaving the input date fields enabled for manual configuration.
+    - **Ramp Panel Grid**: Collapsible generated periods. Contains Platform Child Products, Users Child Products (Standard, Developer, Viewer), and Non-prod rows.
+    - **Validation**: If child quantity > 0, `Region`, `GCP Project ID`, and `Looker Instance ID` are mandatory. Period dates must have no gaps/overlaps.
+    - **Submission Success**: Successful quote update clears all sessionStorage cache data and redirects the user back to the `/opportunities` list.
+    - **Error Handling**: API errors are propagated directly and shown on the screen using toast alerts without fallback mock data.
   
 ### Phase 4: Quote Details & GCP Commitment Flow (Google Cloud Platform)
 A split, double-tab interface where commitment accordion periods are configured.

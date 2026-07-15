@@ -7,13 +7,13 @@ import { PeriodService, Period, ValidationResult } from '../../services/period.s
 import { CommitFlowComponent } from '../commit-flow/commit-flow.component';
 
 @Component({
-  selector: 'app-quote-wizard',
+  selector: 'app-subscription-flow',
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, FormsModule, CommitFlowComponent],
-  templateUrl: './quote-wizard.component.html',
-  styleUrls: ['./quote-wizard.component.css']
+  templateUrl: './subscription-flow.component.html',
+  styleUrls: ['./subscription-flow.component.css']
 })
-export class QuoteWizardComponent implements OnInit {
+export class SubscriptionFlowComponent implements OnInit {
   isCommitFlow: boolean = false;
   detailsForm: FormGroup;
   
@@ -41,21 +41,18 @@ export class QuoteWizardComponent implements OnInit {
   showCreatePeriodsModal: boolean = false;
   showPreviewModal: boolean = false;
   showSuccessModal: boolean = false;
-  isSubmitting: boolean = false;
   generationMode: string = 'Yearly';
   customMonthsPerPeriod: number = 12;
 
   activeTab: 'details' | 'plans' = 'details';
 
   toastMessage: string | null = null;
-  toastType: 'error' | 'success' | 'info' = 'error';
 
-  showToast(message: string, type: 'error' | 'success' | 'info' = 'error'): void {
+  showToast(message: string): void {
     this.toastMessage = message;
-    this.toastType = type;
     setTimeout(() => {
       this.toastMessage = null;
-    }, 4000);
+    }, 3000);
   }
 
   onTabChange(tab: 'details' | 'plans') {
@@ -149,58 +146,63 @@ export class QuoteWizardComponent implements OnInit {
     const quoteId = sessionStorage.getItem('selectedQuoteId');
     if (quoteId) {
       this.currentQuoteId = quoteId;
-      this.crmService.getQuoteDetails(quoteId).subscribe(details => {
-        this.quoteDetails = details;
-        this.paymentAccount = details.paymentAccount;
-        
-        // Load bundle quote line items
-        this.crmService.getBundleQuoteLineItems(quoteId).subscribe(bundleRes => {
-          this.bundleLineItems = bundleRes.records || [];
+      this.crmService.getQuoteDetails(quoteId).subscribe({
+        next: details => {
+          this.quoteDetails = details;
+          this.paymentAccount = details.paymentAccount;
           
-          // Determine if Commit Flow should be active based on the actual selected product
-          const configuredProduct = this.bundleLineItems[0]?.Product2?.Name || sessionStorage.getItem('mockConfiguredProduct') || '';
-          if (configuredProduct === 'Google Cloud Platform RCA' || configuredProduct === 'Google Cloud Platform') {
-            this.isCommitFlow = true;
-          }
-
-          // Fetch PCM/CPQ bundle details hierarchy
-          const productId = this.bundleLineItems[0]?.Product2Id || sessionStorage.getItem('mockConfiguredProductId') || '';
-          if (productId) {
-            this.crmService.getProductDetails(productId).subscribe(hierarchy => {
-              this.bundleHierarchy = hierarchy;
-              this.refreshPeriodsChildProducts();
-            });
-
-            // Fetch bundle product classifications on page load
-            this.crmService.getProductClassifications(productId).subscribe({
-              next: (classifications) => {
-                console.log('[QuoteWizard OnInit] Successfully fetched ProductClassifications for commit flow:', classifications);
-              },
-              error: (err) => {
-                console.warn('[QuoteWizard OnInit] Failed to fetch ProductClassifications on load:', err);
+          // Load bundle quote line items
+          this.crmService.getBundleQuoteLineItems(quoteId).subscribe({
+            next: bundleRes => {
+              this.bundleLineItems = bundleRes.records || [];
+              
+              // Determine if Commit Flow should be active based on the actual selected product
+              const configuredProduct = this.bundleLineItems[0]?.Product2?.Name || sessionStorage.getItem('mockConfiguredProduct') || '';
+              if (configuredProduct === 'Google Cloud Platform RCA' || configuredProduct === 'Google Cloud Platform') {
+                this.isCommitFlow = true;
               }
-            });
-          }
-        });
 
-        // Default expiration date to 45 days from now
-        const expDate = new Date();
-        expDate.setDate(expDate.getDate() + 45);
-        const expStr = expDate.toISOString().split('T')[0];
+              // Fetch PCM/CPQ bundle details hierarchy
+              const productId = this.bundleLineItems[0]?.Product2Id || sessionStorage.getItem('mockConfiguredProductId') || '';
+              if (productId) {
+                this.crmService.getProductDetails(productId).subscribe({
+                  next: hierarchy => {
+                    this.bundleHierarchy = hierarchy;
+                    this.refreshPeriodsChildProducts();
+                  },
+                  error: err => {
+                    this.showToast(err?.message || 'Failed to load bundle details hierarchy.');
+                  }
+                });
+              }
+            },
+            error: err => {
+              this.showToast(err?.message || 'Failed to load bundle quote line items.');
+            }
+          });
 
-        this.detailsForm.patchValue({
-          primaryContact: details.primaryContact || sessionStorage.getItem('selectedPrimaryContact') || '',
-          salesChannel: details.salesChannel || 'Direct',
-          operationType: 'New',
-          quoteExpirationDate: expStr,
-          billingFrequency: details.billingFrequency || 'Annual in Advance Anniversary',
-          termStartsOn: details.termStartsOn || 'Fixed Start Date',
-          termStartDate: details.termStartDate || '',
-          termEndDate: details.termEndDate || ''
-        });
+          // Default expiration date to 45 days from now
+          const expDate = new Date();
+          expDate.setDate(expDate.getDate() + 45);
+          const expStr = expDate.toISOString().split('T')[0];
 
-        this.subscriptionStartDate = details.termStartDate;
-        this.subscriptionEndDate = details.termEndDate;
+          this.detailsForm.patchValue({
+            primaryContact: details.primaryContact || sessionStorage.getItem('selectedPrimaryContact') || '',
+            salesChannel: details.salesChannel || 'Direct',
+            operationType: 'New',
+            quoteExpirationDate: expStr,
+            billingFrequency: details.billingFrequency || 'Annual in Advance Anniversary',
+            termStartsOn: details.termStartsOn || 'Fixed Start Date',
+            termStartDate: details.termStartDate || '',
+            termEndDate: details.termEndDate || ''
+          });
+
+          this.subscriptionStartDate = details.termStartDate;
+          this.subscriptionEndDate = details.termEndDate;
+        },
+        error: err => {
+          this.showToast(err?.message || 'Failed to load quote details.');
+        }
       });
     }
 
@@ -230,11 +232,16 @@ export class QuoteWizardComponent implements OnInit {
   }
 
   loadPicklists(): void {
-    this.crmService.getPicklists().subscribe(lists => {
-      this.billingFrequencyOptions = lists.billingFrequencies || [];
-      this.termStartsOnOptions = lists.termStartsOnOptions || [];
-      this.operationTypeOptions = lists.operationTypes || [];
-      this.regionOptions = lists.regions || [];
+    this.crmService.getPicklists().subscribe({
+      next: lists => {
+        this.billingFrequencyOptions = lists.billingFrequencies || [];
+        this.termStartsOnOptions = lists.termStartsOnOptions || [];
+        this.operationTypeOptions = lists.operationTypes || [];
+        this.regionOptions = lists.regions || [];
+      },
+      error: err => {
+        this.showToast(err?.message || 'Failed to load picklist options from API.');
+      }
     });
   }
 
@@ -286,6 +293,40 @@ export class QuoteWizardComponent implements OnInit {
       end = d.toISOString().split('T')[0];
     }
 
+    if (mode === 'Yearly') {
+      const startD = new Date(start);
+      const endD = new Date(end);
+      if (isNaN(startD.getTime()) || isNaN(endD.getTime()) || startD > endD) {
+        this.showToast('For Yearly, you must select a duration of exact years.');
+        return;
+      }
+
+      const startYear = startD.getFullYear();
+      const startMonth = startD.getMonth();
+      const startDate = startD.getDate();
+
+      const endEx = new Date(endD);
+      endEx.setDate(endEx.getDate() + 1);
+
+      const endYear = endEx.getFullYear();
+      const endMonth = endEx.getMonth();
+      const endDate = endEx.getDate();
+
+      let months = (endYear - startYear) * 12 + (endMonth - startMonth);
+      let days = endDate - startDate;
+
+      if (days < 0) {
+        months -= 1;
+        const tempDate = new Date(startYear, startMonth + 1, 0);
+        days += tempDate.getDate();
+      }
+
+      if (days !== 0 || months === 0 || months % 12 !== 0) {
+        this.showToast('For Yearly, you must select a duration of exact years.');
+        return;
+      }
+    }
+
     // Sync state and form controls
     this.updateSubscriptionDates(start, end);
 
@@ -310,39 +351,43 @@ export class QuoteWizardComponent implements OnInit {
   addPeriod(): void {
     if (this.periods.length === 0) return;
 
-    const lastPeriod = this.periods[this.periods.length - 1];
-    const newStartDate = new Date(lastPeriod.endDate);
-    newStartDate.setDate(newStartDate.getDate() + 1);
-
-    const newEndDate = new Date(newStartDate);
-    
-    if (this.generationMode === 'Yearly') {
-      newEndDate.setFullYear(newEndDate.getFullYear() + 1);
-      newEndDate.setDate(newEndDate.getDate() - 1);
-    } else {
-      newEndDate.setMonth(newEndDate.getMonth() + this.customMonthsPerPeriod);
-      newEndDate.setDate(newEndDate.getDate() - 1);
-    }
-
-    const startStr = newStartDate.toISOString().split('T')[0];
-    const endStr = newEndDate.toISOString().split('T')[0];
-
-    // Add the new period without collapsing others
-
     const dynamicChildren = this.getDynamicChildProducts();
 
-    this.periods.push({
-      name: `Period ${this.periods.length + 1}`,
-      startDate: startStr,
-      endDate: endStr,
-      platformProduct: '',
-      discount: 0,
-      childProducts: JSON.parse(JSON.stringify(dynamicChildren)),
-      expanded: true
-    });
+    if (this.generationMode === 'Yearly') {
+      const lastPeriod = this.periods[this.periods.length - 1];
+      const newStartDate = new Date(lastPeriod.endDate);
+      newStartDate.setDate(newStartDate.getDate() + 1);
 
-    // Update overall end date
-    this.updateSubscriptionDates(this.subscriptionStartDate, endStr);
+      const newEndDate = new Date(newStartDate);
+      newEndDate.setFullYear(newEndDate.getFullYear() + 1);
+      newEndDate.setDate(newEndDate.getDate() - 1);
+
+      const startStr = newStartDate.toISOString().split('T')[0];
+      const endStr = newEndDate.toISOString().split('T')[0];
+
+      this.periods.push({
+        name: `Period ${this.periods.length + 1}`,
+        startDate: startStr,
+        endDate: endStr,
+        platformProduct: '',
+        discount: 0,
+        childProducts: JSON.parse(JSON.stringify(dynamicChildren)),
+        expanded: true
+      });
+
+      this.updateSubscriptionDates(this.subscriptionStartDate, endStr);
+    } else {
+      // In Custom mode, push an empty period so the user can enter dates manually
+      this.periods.push({
+        name: `Period ${this.periods.length + 1}`,
+        startDate: '',
+        endDate: '',
+        platformProduct: '',
+        discount: 0,
+        childProducts: JSON.parse(JSON.stringify(dynamicChildren)),
+        expanded: true
+      });
+    }
 
     // Auto-scroll to bottom to show new period and add button
     setTimeout(() => {
@@ -354,6 +399,15 @@ export class QuoteWizardComponent implements OnInit {
         });
       }
     }, 50);
+  }
+
+  onPeriodDateChange(): void {
+    if (this.generationMode === 'Custom' && this.periods.length > 0) {
+      const lastPeriod = this.periods[this.periods.length - 1];
+      if (lastPeriod.endDate) {
+        this.updateSubscriptionDates(this.subscriptionStartDate, lastPeriod.endDate);
+      }
+    }
   }
 
   validateAllPeriods(): ValidationResult {
@@ -381,57 +435,25 @@ export class QuoteWizardComponent implements OnInit {
   }
 
   submitQuote(): void {
-    // Step 1: Validate the Details form
-    if (this.detailsForm.invalid) {
-      this.detailsForm.markAllAsTouched();
-      this.showToast('Please fill in all required fields in the Details tab before submitting.', 'error');
-      this.activeTab = 'details';
-      return;
-    }
-
-    // Step 2: Require at least one subscription period
-    if (this.periods.length === 0) {
-      this.showToast('Please create at least one subscription period in the Plans & Discounts tab before submitting.', 'error');
-      this.activeTab = 'plans';
-      return;
-    }
-
-    // Step 3: Validate all period configurations
     const validation = this.validateAllPeriods();
-    if (!validation.isValid) {
-      const msg = validation.errors?.[0]?.message || 'One or more subscription periods are incomplete. Please select a Platform for each period.';
-      this.showToast(msg, 'error');
-      this.activeTab = 'plans';
-      return;
+    if (!validation.isValid || this.periods.length === 0 || this.detailsForm.invalid) {
+      return; 
     }
 
-    // Step 4: Build composite graph payload
     const payload = this.buildSubmitPayload();
-    console.log('[Submit] Composite Graph Payload:', JSON.stringify(payload, null, 2));
 
-    // Step 5: Fire the single API call
-    this.isSubmitting = true;
     this.crmService.submitQuoteDetails(payload).subscribe(
       res => {
-        this.isSubmitting = false;
         if (res && (res.isSuccess || res.success)) {
           this.showSuccessModal = true;
         } else {
-          const errorMsg = res?.errorResponse?.[0]?.message
-            || res?.errors?.[0]?.message
-            || res?.message
-            || 'Quote submission failed. Please review your configuration and try again.';
-          this.showToast(errorMsg, 'error');
+          const errorMsg = res?.errorResponse?.[0]?.message || res?.errors?.[0]?.message || 'Quote creation failed. Please check your configurations.';
+          this.showToast(errorMsg);
         }
       },
       error => {
-        this.isSubmitting = false;
-        const errorMsg = error?.error?.[0]?.message
-          || error?.error?.message
-          || error?.message
-          || 'An unexpected error occurred during submission. Please try again.';
-        console.error('[Submit] Error:', error);
-        this.showToast(errorMsg, 'error');
+        const errorMsg = error?.message || 'An error occurred during submission.';
+        this.showToast(errorMsg);
       }
     );
   }
@@ -885,7 +907,7 @@ export class QuoteWizardComponent implements OnInit {
   }
 
   get isSubmitDisabled(): boolean {
-    return this.isSubmitting || this.detailsForm.invalid;
+    return this.periods.length === 0 || this.detailsForm.invalid;
   }
 
   getBillingFrequencyKey(): 'Annual' | 'Months' {
@@ -937,13 +959,31 @@ export class QuoteWizardComponent implements OnInit {
     if (!startDateStr || !endDateStr) return '';
     const start = new Date(startDateStr);
     const end = new Date(endDateStr);
+    
+    const startYear = start.getFullYear();
+    const startMonth = start.getMonth();
+    const startDate = start.getDate();
+
+    const endEx = new Date(end);
+    endEx.setDate(endEx.getDate() + 1);
+
+    const endYear = endEx.getFullYear();
+    const endMonth = endEx.getMonth();
+    const endDate = endEx.getDate();
+
+    let months = (endYear - startYear) * 12 + (endMonth - startMonth);
+    let days = endDate - startDate;
+
+    if (days < 0) {
+      months -= 1;
+      const tempDate = new Date(startYear, startMonth + 1, 0);
+      days += tempDate.getDate();
+    }
+    
     const diffTime = Math.abs(end.getTime() - start.getTime());
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
-    const months = Math.round(diffDays / 30.4375);
-    if (months === 12) {
-      return `12M 0D (${diffDays} Days)`;
-    }
-    return `${months}M 0D (${diffDays} Days)`;
+
+    return `${months}M ${days}D (${diffDays} Days)`;
   }
 
   togglePeriodExpansion(period: Period): void {
@@ -1379,5 +1419,4 @@ export class QuoteWizardComponent implements OnInit {
     const url = `${salesforceDomain}/lightning/r/Quote/${this.currentQuoteId}/view`;
     window.open(url, '_blank');
   }
-
 }

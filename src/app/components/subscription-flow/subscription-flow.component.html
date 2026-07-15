@@ -1,4 +1,4 @@
-<div class="quote-wizard-layout bg-[#f0f2f5] h-screen overflow-hidden p-4 md:p-6 flex justify-center items-stretch">
+<div class="subscription-flow-layout bg-[#f0f2f5] h-screen overflow-hidden p-4 md:p-6 flex justify-center items-stretch">
   <div class="workspace-card bg-white rounded-xl shadow-md w-full h-full flex flex-col overflow-hidden border border-gray-200 transition-all duration-300">
        
       <!-- Card Header -->
@@ -110,7 +110,7 @@
         </nav>
 
         <!-- TAB 1: DETAILS -->
-        <div class="tab-pane px-6 py-4 bg-gray-50/30 flex-1 overflow-y-auto" [hidden]="activeTab !== 'details'">
+        <div class="tab-pane px-6 py-4 bg-gray-50/30 flex-1 overflow-y-auto scroll-smooth" [hidden]="activeTab !== 'details'">
           <form [formGroup]="detailsForm" class="grid grid-cols-[1fr_320px] gap-4 items-start">
           
           <!-- Left Column (Form Sections) -->
@@ -317,7 +317,7 @@
       </div>
 
       <!-- TAB 2: PLANS & DISCOUNTS -->
-      <div class="tab-pane px-6 py-4 bg-gray-50/30 flex-1 overflow-y-auto" [hidden]="activeTab !== 'plans'">
+      <div class="tab-pane px-6 py-4 bg-gray-50/30 flex-1 overflow-y-auto scroll-smooth" [hidden]="activeTab !== 'plans'">
         
         <!-- Period Dates Inputs Header -->
         <div class="subscription-periods-header flex justify-between items-center mb-3">
@@ -417,17 +417,39 @@
 
                 <!-- Start Date -->
                 <div class="flex flex-col text-left">
-                  <div class="border border-gray-200 rounded-lg px-2 bg-gray-50/50 flex flex-col justify-center h-[38px]">
-                    <span class="text-[8px] text-gray-400 font-bold uppercase tracking-wider leading-none">{{ period.name }} Start date</span>
-                    <input type="date" [(ngModel)]="period.startDate" disabled class="outline-none text-xs text-gray-500 bg-transparent mt-0.5 w-full" />
+                  <div class="border border-gray-200 rounded-lg p-2 flex items-center relative h-[38px]"
+                       [ngClass]="generationMode === 'Yearly' ? 'bg-gray-50/50 cursor-not-allowed text-gray-400' : 'bg-white hover:border-gray-300 transition-colors focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500'">
+                    <div class="flex flex-col flex-1 min-w-0">
+                      <span class="text-[9px] text-gray-400 font-bold uppercase tracking-wider leading-none">{{ period.name }} Start date</span>
+                      <input type="date" [(ngModel)]="period.startDate" [disabled]="generationMode === 'Yearly'" (change)="onPeriodDateChange()" 
+                             [ngClass]="generationMode === 'Yearly' ? 'text-gray-400 cursor-not-allowed' : 'text-gray-700 font-semibold'"
+                             class="outline-none text-xs bg-transparent mt-0.5 w-full p-0 border-none relative z-10" />
+                    </div>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-gray-400 absolute right-2 bottom-2.5 pointer-events-none">
+                      <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                      <line x1="16" y1="2" x2="16" y2="6"></line>
+                      <line x1="8" y1="2" x2="8" y2="6"></line>
+                      <line x1="3" y1="10" x2="21" y2="10"></line>
+                    </svg>
                   </div>
                 </div>
 
                 <!-- End Date -->
                 <div class="flex flex-col text-left">
-                  <div class="border border-gray-200 rounded-lg px-2 bg-gray-50/50 flex flex-col justify-center h-[38px]">
-                    <span class="text-[8px] text-gray-400 font-bold uppercase tracking-wider leading-none">{{ period.name }} End date</span>
-                    <input type="date" [(ngModel)]="period.endDate" disabled class="outline-none text-xs text-gray-500 bg-transparent mt-0.5 w-full" />
+                  <div class="border border-gray-200 rounded-lg p-2 flex items-center relative h-[38px]"
+                       [ngClass]="generationMode === 'Yearly' ? 'bg-gray-50/50 cursor-not-allowed text-gray-400' : 'bg-white hover:border-gray-300 transition-colors focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500'">
+                    <div class="flex flex-col flex-1 min-w-0">
+                      <span class="text-[9px] text-gray-400 font-bold uppercase tracking-wider leading-none">{{ period.name }} End date</span>
+                      <input type="date" [(ngModel)]="period.endDate" [disabled]="generationMode === 'Yearly'" (change)="onPeriodDateChange()"
+                             [ngClass]="generationMode === 'Yearly' ? 'text-gray-400 cursor-not-allowed' : 'text-gray-700 font-semibold'"
+                             class="outline-none text-xs bg-transparent mt-0.5 w-full p-0 border-none relative z-10" />
+                    </div>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-gray-400 absolute right-2 bottom-2.5 pointer-events-none">
+                      <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                      <line x1="16" y1="2" x2="16" y2="6"></line>
+                      <line x1="8" y1="2" x2="8" y2="6"></line>
+                      <line x1="3" y1="10" x2="21" y2="10"></line>
+                    </svg>
                   </div>
                   <span class="text-[9px] text-gray-400 mt-0.5 font-medium pl-1">
                     {{ getPeriodDuration(period.startDate, period.endDate) }}
@@ -534,9 +556,8 @@
         <button class="btn-footer-outline px-4 py-1.5 border border-gray-300 rounded-lg text-xs font-semibold text-gray-600 bg-white hover:bg-gray-50 transition shadow-sm">
           Save
         </button>
-        <button class="btn-footer-submit px-5 py-1.5 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition rounded-lg text-xs font-semibold text-white shadow-sm flex items-center gap-1.5" type="submit" [disabled]="isSubmitDisabled" (click)="submitQuote()">
-          <span *ngIf="isSubmitting" class="inline-block w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
-          {{ isSubmitting ? 'Submitting...' : 'Submit' }}
+        <button class="btn-footer-submit px-5 py-1.5 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition rounded-lg text-xs font-semibold text-white shadow-sm" type="submit" [disabled]="isSubmitDisabled" (click)="submitQuote()">
+          Submit
         </button>
       </footer>
 
@@ -766,28 +787,11 @@
   </div>
 
   <!-- Toast Notification -->
-  <div *ngIf="toastMessage" 
-    class="fixed top-6 right-6 px-4 py-3 rounded-lg text-sm shadow-lg z-50 flex items-center gap-2 transition-all transform duration-300 ease-in-out translate-y-0 opacity-100 font-semibold"
-    [ngClass]="{
-      'bg-red-50 border border-red-200 text-red-700': toastType === 'error',
-      'bg-green-50 border border-green-200 text-green-700': toastType === 'success',
-      'bg-blue-50 border border-blue-200 text-blue-700': toastType === 'info'
-    }">
-    <!-- Error icon -->
-    <svg *ngIf="toastType === 'error'" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+  <div *ngIf="toastMessage" class="fixed top-6 right-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm shadow-lg z-50 flex items-center gap-2 transition-all transform duration-300 ease-in-out translate-y-0 opacity-100 font-semibold">
+    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
       <circle cx="12" cy="12" r="10"></circle>
       <line x1="12" y1="8" x2="12" y2="12"></line>
       <line x1="12" y1="16" x2="12.01" y2="16"></line>
-    </svg>
-    <!-- Success icon -->
-    <svg *ngIf="toastType === 'success'" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
-    </svg>
-    <!-- Info icon -->
-    <svg *ngIf="toastType === 'info'" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <circle cx="12" cy="12" r="10"></circle>
-      <line x1="12" y1="16" x2="12" y2="12"></line>
-      <line x1="12" y1="8" x2="12.01" y2="8"></line>
     </svg>
     {{ toastMessage }}
   </div>

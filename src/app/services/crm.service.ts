@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Observable, of, forkJoin } from 'rxjs';
+import { Observable, of, forkJoin, throwError } from 'rxjs';
 import { map, catchError, switchMap } from 'rxjs/operators';
 
 export interface Opportunity {
@@ -94,7 +94,7 @@ export class CrmService {
     }
     if (!token) {
       // Fallback to the development token if none is found
-      token = '00DDz000001qvYA!ARQAQCOMsSyXqhZqnwgEgzjwAEwd6zY0sR54H0jwZVCOyPODwV.phlmwSx6QnIfoLdr6eiBtGaXPzw1V4VKpvZg4ZTliMa.6';
+      token = '00DDz000001qvYA!ARQAQKCPprIKo8hAd2WPiDXzb1bWk2wbX5xOnGt6CrOp27WaTm.rpI364KmWKw4W7VVZmLJ5juy6h.HaOmOkrmQKCqI_qnj8';
     }
 
     const headers: { [header: string]: string } = {

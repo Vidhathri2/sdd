@@ -81,7 +81,7 @@ We are utilizing a standard Angular workspace layout configured with Tailwind CS
 │   │   ├── components/
 │   │   │   ├── opportunity-list/   # Angular component for opportunity landing page
 │   │   │   ├── product-catalog/    # Angular component for product discovery and cart drawer
-│   │   │   └── quote-wizard/       # Angular component for quote configuration, subscription periods, and commitment accordions
+│   │   │   └── subscription-flow/  # Angular component for quote configuration, subscription periods, and commitment accordions
 │   │   ├── services/
 │   │   │   ├── crm.service.ts      # Shared service for Opportunity / Product / Quote mock APIs
 │   │   │   ├── period.service.ts   # Shared service for Yearly/Custom period date calculations (Looker)
